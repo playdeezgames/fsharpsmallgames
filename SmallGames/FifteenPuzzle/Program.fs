@@ -4,6 +4,7 @@ open System.Numerics
 open Microsoft.Xna.Framework.Input
 open Microsoft.Xna.Framework
 open System.IO
+open System
 
 let cellWidth = 128
 let cellHeight = 128
@@ -130,6 +131,6 @@ type Game1() as this=
 
 [<EntryPoint>]
 let main argv = 
-    let game = new Game1()
+    use game = new Game1()
     game.Run()
     0

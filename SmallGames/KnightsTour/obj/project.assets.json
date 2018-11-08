@@ -782,30 +782,33 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\ernestpazera\\.nuget\\packages\\": {},
+    "C:\\Users\\epazera\\.nuget\\packages\\": {},
     "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "E:\\gitlab\\ggd\\fsbfgd\\SmallGames\\KnightsTour\\KnightsTour.fsproj",
+      "projectUniqueName": "C:\\lint\\ggd\\fs\\SmallGames\\KnightsTour\\KnightsTour.fsproj",
       "projectName": "KnightsTour",
-      "projectPath": "E:\\gitlab\\ggd\\fsbfgd\\SmallGames\\KnightsTour\\KnightsTour.fsproj",
-      "packagesPath": "C:\\Users\\ernestpazera\\.nuget\\packages\\",
-      "outputPath": "E:\\gitlab\\ggd\\fsbfgd\\SmallGames\\KnightsTour\\obj\\",
+      "projectPath": "C:\\lint\\ggd\\fs\\SmallGames\\KnightsTour\\KnightsTour.fsproj",
+      "packagesPath": "C:\\Users\\epazera\\.nuget\\packages\\",
+      "outputPath": "C:\\lint\\ggd\\fs\\SmallGames\\KnightsTour\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
       ],
       "configFilePaths": [
-        "C:\\Users\\ernestpazera\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        "C:\\Users\\epazera\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\ServiceFabricSDK.config"
       ],
       "originalTargetFrameworks": [
         "netcoreapp2.1"
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "C:\\tfs\\kmstt\\Core": {},
+        "\\\\oc-034\\Nuget Packages": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
