@@ -1,8 +1,0 @@
-E:\gitlab\ggd\fsbfgd\SmallGames\KnightsTour\bin\Debug\netcoreapp2.1\KnightsTour.deps.json
-E:\gitlab\ggd\fsbfgd\SmallGames\KnightsTour\bin\Debug\netcoreapp2.1\KnightsTour.runtimeconfig.json
-E:\gitlab\ggd\fsbfgd\SmallGames\KnightsTour\bin\Debug\netcoreapp2.1\KnightsTour.runtimeconfig.dev.json
-E:\gitlab\ggd\fsbfgd\SmallGames\KnightsTour\bin\Debug\netcoreapp2.1\KnightsTour.dll
-E:\gitlab\ggd\fsbfgd\SmallGames\KnightsTour\bin\Debug\netcoreapp2.1\KnightsTour.pdb
-E:\gitlab\ggd\fsbfgd\SmallGames\KnightsTour\obj\Debug\netcoreapp2.1\KnightsTour.fsprojAssemblyReference.cache
-E:\gitlab\ggd\fsbfgd\SmallGames\KnightsTour\obj\Debug\netcoreapp2.1\KnightsTour.dll
-E:\gitlab\ggd\fsbfgd\SmallGames\KnightsTour\obj\Debug\netcoreapp2.1\KnightsTour.pdb
