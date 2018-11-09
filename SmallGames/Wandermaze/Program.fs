@@ -5,6 +5,7 @@ open Microsoft.Xna.Framework.Input
 open System.IO
 open System.Globalization
 open Utility
+open System.Text
 
 let boardCellWidth = 16
 let boardCellHeight = 16
@@ -16,10 +17,10 @@ let boardOffsetY = 0
 let boardWidth = boardCellWidth * boardCellColumns
 let boardHeight = boardCellRows * boardCellHeight
 
-let panelCellWidth = 32
-let panelCellHeight = 32
-let panelCellColumns = 8
-let panelCellRows = 16
+let panelCellWidth = 16
+let panelCellHeight = 16
+let panelCellColumns = 16
+let panelCellRows = 32
 
 let panelOffsetX = boardOffsetX + boardWidth
 let panelOffsetY = boardOffsetY
@@ -33,6 +34,18 @@ type CellState = | Fire | Water | Earth | Gold | Player
 type Board = Map<Position, CellState>
 type GameState = {board:Board;level:int;score:int;protection:int}
 
+let hasPlayer (gameState:GameState) : bool =
+    gameState.board
+    |> Map.exists (fun _ v -> v = Player)
+
+let getCellState (position:Position) (gameState:GameState) : CellState option =
+    gameState.board |> Map.tryFind position
+
+let (|GAMEOVER|INPLAY|) (gameState:GameState) =
+    match gameState with
+    | x when x |> hasPlayer -> INPLAY
+    | _ -> GAMEOVER
+
 let isKeyPressed (key:Keys) (oldKeyboardState:KeyboardState) (newKeyboardState:KeyboardState) : bool = 
     oldKeyboardState.IsKeyUp(key) && newKeyboardState.IsKeyDown(key)
 
@@ -43,9 +56,18 @@ type TextureIdentifier =
     | Meeple
     | StoneWall
     | WaterDrop
+    | RomFont
 
 let setBoardCell (position:Position) (state:CellState) (gameState:GameState) : GameState =
     {gameState with board = gameState.board |> Map.add position state}
+
+let addScore (score:int) (gameState:GameState) : GameState =
+    {gameState with score = gameState.score + score}
+
+let addProtection (protection:int) (gameState:GameState) : GameState =
+    {gameState with protection = gameState.protection + protection}
+
+let removeProtection (protection:int) = addProtection (-protection)
 
 let boardPositions = 
     [for x = 0 to (boardCellColumns-1) do
@@ -115,13 +137,37 @@ let directionMap =
     [(North,(0,-1));(East,(1,0));(South,(0,1));(West,(-1,0))] |> Map.ofList
 
 let makeMove (direction:Direction) (gameState: GameState) : GameState =
-    let playerPosition = 
-        gameState.board
-        |> Map.findKey (fun k v -> v = Player)
-    let nextPosition = playerPosition |> Position.add (directionMap.[direction])
-    gameState
-    |> setBoardCell playerPosition Fire
-    |> setBoardCell nextPosition Player
+    match gameState with 
+    | INPLAY ->
+        let playerPosition = 
+            gameState.board
+            |> Map.findKey (fun _ v -> v = Player)
+        let nextPosition = playerPosition |> Position.add (directionMap.[direction])
+        if boardPositions |> List.tryFind (fun v -> v = nextPosition) |> Option.isSome then
+            match gameState |> getCellState nextPosition with
+            | Some Fire ->
+                gameState
+                |> setBoardCell playerPosition Fire
+            | Some Earth ->
+                gameState
+            | Some Gold ->
+                gameState
+                |> setBoardCell playerPosition Fire
+                |> setBoardCell nextPosition Player
+                |> addScore 1
+            | Some Water ->
+                gameState
+                |> setBoardCell playerPosition Fire
+                |> setBoardCell nextPosition Player
+                |> addProtection 1
+            | _ ->
+                gameState
+                |> setBoardCell playerPosition Fire
+                |> setBoardCell nextPosition Player
+        else
+            gameState
+    | _ ->
+        gameState
 
 type Wandermaze() as this=
     inherit Game()
@@ -148,6 +194,7 @@ type Wandermaze() as this=
             ( Flame,"Content/flame.png");
             ( Meeple,"Content/meeple.png");
             ( StoneWall,"Content/stone-wall.png");
+            ( RomFont,"Content/romfont8x8.png");
             ( WaterDrop,"Content/water-drop.png")]
             |> List.fold 
                 (fun acc (index,fileName) -> 
@@ -173,15 +220,26 @@ type Wandermaze() as this=
             gameState <- gameState |> makeMove East
         oldKeyboardState <- state
 
+    member this.WriteText (position:Position,outputSize:Position,text:string,color:Color) :unit =
+        let texture = textures.[RomFont]
+        let inputSize = (texture.Width/16, texture.Height/16)
+        (position, text |> Encoding.ASCII.GetBytes)
+        ||> Array.fold 
+            (fun p c -> 
+                spriteBatch.Draw(texture,new Rectangle(p|>fst,p|>snd,outputSize|>fst,outputSize|>snd), new Rectangle((int(c % 16uy)) * (inputSize|>fst),(int(c / 16uy)) * (inputSize|>snd),inputSize|>fst,inputSize|>snd) |> Some |> Option.toNullable, color)
+                ((p |> fst) + (outputSize |> fst), p|>snd)) 
+        |>ignore
+
+
     override this.Draw delta =
-        Color.BlanchedAlmond
+        Color.Black
         |> this.GraphicsDevice.Clear
         spriteBatch.Begin()
 
         gameState.board
         |> drawBoard textures spriteBatch
 
-        //spriteBatch.Draw(textures.[Cursor],new Rectangle((cursorPosition |> fst)*cellWidth,(cursorPosition |> snd)*cellHeight,cellWidth,cellHeight), Color.White)
+        this.WriteText((panelOffsetX,panelOffsetY),(panelCellWidth,panelCellHeight),gameState.score |> sprintf "Score: %d",Color.Yellow)
 
         spriteBatch.End()
 
