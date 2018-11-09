@@ -2,6 +2,7 @@
 open Microsoft.Xna.Framework.Graphics
 open Microsoft.Xna.Framework.Input
 open System.IO
+open System
 
 let cellWidth = 128
 let cellHeight = 128
@@ -29,20 +30,6 @@ let directionDeltas =
     (West,  (-1,0))]
     |> Map.ofList
 
-
-let newGame () : GameState =
-    [0..(cellColumns * cellRows-1)]
-    |> List.map (fun x -> ((x % cellColumns, x/cellColumns),x))
-    |> Map.ofList
-
-let drawBoard (textures:Map<int,Texture2D>) (spriteBatch: SpriteBatch) (game:GameState) =
-    game
-    |> Map.iter
-        (fun k v -> 
-            let destination = new Rectangle((k |> fst)*cellWidth,(k |> snd)*cellHeight,cellWidth,cellHeight)
-            spriteBatch.Draw(textures.[v], destination, Color.White))
-
-
 let makeMove (direction: MoveDirection) (game:GameState) : GameState =
     let current =
         game
@@ -56,6 +43,28 @@ let makeMove (direction: MoveDirection) (game:GameState) : GameState =
     else
         game
 
+let scramble (game:GameState) : GameState =
+    let random = Random()
+    let directions = [(0,North);(1,East);(2,South);(3,West)] |> Map.ofList
+    (game, [1..1000])
+    ||> List.fold 
+        (fun acc _ -> 
+            acc
+            |> makeMove (directions.[random.Next(4)]))
+
+
+let newGame () : GameState =
+    [0..(cellColumns * cellRows-1)]
+    |> List.map (fun x -> ((x % cellColumns, x/cellColumns),x))
+    |> Map.ofList
+
+let drawBoard (textures:Map<int,Texture2D>) (spriteBatch: SpriteBatch) (game:GameState) =
+    game
+    |> Map.iter
+        (fun k v -> 
+            let destination = new Rectangle((k |> fst)*cellWidth,(k |> snd)*cellHeight,cellWidth,cellHeight)
+            spriteBatch.Draw(textures.[v], destination, Color.White))
+
 type Game1() as this=
     inherit Game()
 
@@ -65,7 +74,7 @@ type Game1() as this=
     let graphics = new GraphicsDeviceManager(this)
 
     let mutable spriteBatch: SpriteBatch = null
-    let mutable game = newGame()
+    let mutable game = newGame() |> scramble
     let mutable textures: Map<int,Texture2D> = Map.empty
     let mutable oldKeyboardState: KeyboardState = Keyboard.GetState()
 
@@ -99,7 +108,6 @@ type Game1() as this=
         base.Initialize()
 
     override this.LoadContent() =
-        //this.Content.Load<
         ()
 
     override this.Update delta =
@@ -107,13 +115,13 @@ type Game1() as this=
         if(state.IsKeyDown(Keys.Escape)) then
             this.Exit()
         elif(state.IsKeyDown(Keys.Up) && oldKeyboardState.IsKeyDown(Keys.Up) |> not) then
-            game <- game |> makeMove North
-        elif(state.IsKeyDown(Keys.Down) && oldKeyboardState.IsKeyDown(Keys.Down) |> not) then
             game <- game |> makeMove South
+        elif(state.IsKeyDown(Keys.Down) && oldKeyboardState.IsKeyDown(Keys.Down) |> not) then
+            game <- game |> makeMove North
         elif(state.IsKeyDown(Keys.Left) && oldKeyboardState.IsKeyDown(Keys.Left) |> not) then
-            game <- game |> makeMove West
-        elif(state.IsKeyDown(Keys.Right) && oldKeyboardState.IsKeyDown(Keys.Right) |> not) then
             game <- game |> makeMove East
+        elif(state.IsKeyDown(Keys.Right) && oldKeyboardState.IsKeyDown(Keys.Right) |> not) then
+            game <- game |> makeMove West
         oldKeyboardState <- state
 
     override this.Draw delta =

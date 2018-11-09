@@ -1,4 +1,16 @@
 ﻿open System
+open Microsoft.Xna.Framework
+open Microsoft.Xna.Framework.Graphics
+open Microsoft.Xna.Framework.Input
+open System.IO
+
+let cellWidth = 96
+let cellHeight = 96
+let cellColumns = 8
+let cellRows = 8
+
+let backBufferWidth = cellWidth * cellColumns
+let backBufferHeight = cellRows * cellHeight
 
 type SquareState = 
     | UNVISITED
@@ -9,72 +21,6 @@ type Position = int * int
 
 type Board = Map<Position, SquareState>
 
-let cellTexts =
-    [("a1",(1,1));
-    ("a2",(1,2));
-    ("a3",(1,3));
-    ("a4",(1,4));
-    ("a5",(1,5));
-    ("a6",(1,6));
-    ("a7",(1,7));
-    ("a8",(1,8));
-    ("b1",(2,1));
-    ("b2",(2,2));
-    ("b3",(2,3));
-    ("b4",(2,4));
-    ("b5",(2,5));
-    ("b6",(2,6));
-    ("b7",(2,7));
-    ("b8",(2,8));
-    ("c1",(3,1));
-    ("c2",(3,2));
-    ("c3",(3,3));
-    ("c4",(3,4));
-    ("c5",(3,5));
-    ("c6",(3,6));
-    ("c7",(3,7));
-    ("c8",(3,8));
-    ("d1",(4,1));
-    ("d2",(4,2));
-    ("d3",(4,3));
-    ("d4",(4,4));
-    ("d5",(4,5));
-    ("d6",(4,6));
-    ("d7",(4,7));
-    ("d8",(4,8));
-    ("e1",(5,1));
-    ("e2",(5,2));
-    ("e3",(5,3));
-    ("e4",(5,4));
-    ("e5",(5,5));
-    ("e6",(5,6));
-    ("e7",(5,7));
-    ("e8",(5,8));
-    ("f1",(6,1));
-    ("f2",(6,2));
-    ("f3",(6,3));
-    ("f4",(6,4));
-    ("f5",(6,5));
-    ("f6",(6,6));
-    ("f7",(6,7));
-    ("f8",(6,8));
-    ("g1",(7,1));
-    ("g2",(7,2));
-    ("g3",(7,3));
-    ("g4",(7,4));
-    ("g5",(7,5));
-    ("g6",(7,6));
-    ("g7",(7,7));
-    ("g8",(7,8));
-    ("h1",(8,1));
-    ("h2",(8,2));
-    ("h3",(8,3));
-    ("h4",(8,4));
-    ("h5",(8,5));
-    ("h6",(8,6));
-    ("h7",(8,7));
-    ("h8",(8,8))]
-    |> Map.ofList
 let legalMoves = 
     [(-2, 1);
      ( 2, 1);
@@ -84,47 +30,21 @@ let legalMoves =
      ( 1, 2);
      (-1,-2);
      ( 1,-2)]
-let BoardWidth = 8
-let BoardHeight = 8
 
 let addPosition (first:Position) (second:Position) : Position =
     ((first |> fst) + (second |> fst), (first |> snd) + (second |> snd))
 
 let makeBoard () : Board =
     let columnFold (board:Board) (column:int) : Board =
-        (board, [1..BoardHeight])
+        (board, [0..(cellRows-1)])
         ||> List.fold 
             (fun board row -> 
                 board |> Map.add (column,row) UNVISITED)
 
-    (Map.empty, [1..BoardWidth])
+    (Map.empty, [0..(cellColumns-1)])
     ||> List.fold columnFold
 
 let board = makeBoard()
-
-let drawBoard (board:Board) : unit =
-    Console.Clear()
-    Console.Write("  A B C D E F G H")
-
-    [1..8] 
-    |> List.iter
-        (fun row ->
-            Console.CursorLeft<-0
-            Console.CursorTop<-row
-            Console.Write(row))
-
-    board
-    |> Map.iter 
-        (fun (column,row) state ->
-            Console.CursorLeft <- column * 2
-            Console.CursorTop <- row
-            let character = 
-                match state with
-                | UNVISITED -> '.'
-                | OCCUPIED -> 'K'
-                | VISITED -> '#'
-            Console.Write(character))
-    ()
 
 let isBoardStarting (board:Board) : bool =
     board
@@ -140,7 +60,18 @@ let (|UNSOLVABLE|STARTING|INPLAY|) (board:Board) =
     | x when x |> isBoardInPlay -> INPLAY
     | _ -> UNSOLVABLE
 
-let makeMove (board:Board) (move:Position) : Board =
+let isLegalMove (position: Position) (board:Board) : bool =
+    match board with 
+    | STARTING -> board |> Map.containsKey position
+    | INPLAY -> 
+        legalMoves
+        |> List.exists 
+            (fun x -> 
+                let destination = x |> addPosition position
+                board |> Map.exists (fun k v -> k = destination && v = OCCUPIED))
+    | _ -> false
+
+let makeMove (move:Position) (board:Board) : Board =
     match board with
     | STARTING ->
         board
@@ -163,34 +94,124 @@ let makeMove (board:Board) (move:Position) : Board =
     | _ -> 
         board
 
-let rec playGame (board:Board) : unit =
+type TextureIdentifier = 
+    | DarkAllowed
+    | DarkEmpty
+    | DarkOccupied
+    | DarkVisited
+    | LightAllowed
+    | LightEmpty
+    | LightOccupied
+    | LightVisited
+    | Cursor
+
+let (|DARK|LIGHT|) (position: Position) =
+    match position with
+    | (x,y) when ((x + y) % 2) = 1 -> DARK
+    | _ -> LIGHT
+        
+
+let drawBoard (textures:Map<TextureIdentifier,Texture2D>) (spriteBatch:SpriteBatch) (board:Board) : unit =
     board
-    |> drawBoard
+    |> Map.iter 
+        (fun position state ->
+            let textureIdentifier = 
+                match (position, state, board |> isLegalMove position) with
+                | LIGHT, UNVISITED, true ->
+                    LightAllowed
+                | LIGHT, UNVISITED, false ->
+                    LightEmpty
+                | LIGHT, OCCUPIED, _ ->
+                    LightOccupied
+                | LIGHT, VISITED, _ ->
+                    LightVisited
+                | DARK, UNVISITED, true ->
+                    DarkAllowed
+                | DARK, UNVISITED, false ->
+                    DarkEmpty
+                | DARK, OCCUPIED, _ ->
+                    DarkOccupied
+                | DARK, VISITED, _ ->
+                    DarkVisited
+            spriteBatch.Draw(textures.[textureIdentifier], new Rectangle((position |> fst)*cellWidth,(position |> snd)*cellHeight,cellWidth,cellHeight), Color.White))
 
-    "\n\nYer move"
-    |> printfn "%s"
+let isKeyPressed (key:Keys) (oldKeyboardState:KeyboardState) (newKeyboardState:KeyboardState) : bool = 
+    oldKeyboardState.IsKeyUp(key) && newKeyboardState.IsKeyDown(key)
 
-    match board with
-    | STARTING | INPLAY ->
-        let input = Console.ReadLine().ToLower()
-        cellTexts    
-        |> Map.tryPick (fun k v -> if k = input then Some v else None)
-        |> Option.map (makeMove board)
-        |> Option.iter playGame
+let moveCursor (delta:Position) (cursor:Position) : Position =
+    match addPosition delta cursor with
+    | (x,y) when x<0 || y<0 || x>=cellColumns || y>=cellRows -> cursor
+    | x -> x
 
-        board
-        |> playGame
-    | UNSOLVABLE -> 
+type Game1() as this=
+    inherit Game()
+
+    do
+        this.Content.RootDirectory <- "Content"
+
+    let graphics = new GraphicsDeviceManager(this)
+
+    let mutable spriteBatch: SpriteBatch = null
+    let mutable textures: Map<TextureIdentifier,Texture2D> = Map.empty
+    let mutable oldKeyboardState: KeyboardState = Keyboard.GetState()
+    let mutable board: Board = makeBoard()
+    let mutable cursorPosition: Position = (0,0)
+
+    override this.Initialize() =
+        graphics.PreferredBackBufferWidth <- backBufferWidth
+        graphics.PreferredBackBufferHeight <- backBufferHeight
+        graphics.ApplyChanges()
+        spriteBatch <- new SpriteBatch(this.GraphicsDevice)
+        textures <-
+            [(DarkAllowed,"Content/dark-allowed.png");
+            ( DarkEmpty,"Content/dark-empty.png");
+            ( DarkOccupied,"Content/dark-occupied.png");
+            ( DarkVisited,"Content/dark-visited.png");
+            ( LightAllowed,"Content/light-allowed.png");
+            ( LightEmpty,"Content/light-empty.png");
+            ( LightOccupied,"Content/light-occupied.png");
+            ( LightVisited,"Content/light-visited.png");
+            ( Cursor,"Content/cursor.png")]
+            |> List.fold 
+                (fun acc (index,fileName) -> 
+                    acc
+                    |> Map.add index (Texture2D.FromStream(this.GraphicsDevice, new FileStream(fileName, FileMode.Open)))) textures
+
+        base.Initialize()
+
+    override this.LoadContent() =
         ()
 
+    override this.Update delta =
+        let state = Keyboard.GetState()
+        if(state.IsKeyDown(Keys.Escape)) then
+            this.Exit()
+        if isKeyPressed Keys.Space oldKeyboardState state then
+            board <- board |> makeMove cursorPosition
+        elif isKeyPressed Keys.Up oldKeyboardState state then
+            cursorPosition <- cursorPosition |> moveCursor (0,-1)
+        elif isKeyPressed Keys.Down oldKeyboardState state then
+            cursorPosition <- cursorPosition |> moveCursor (0,1)
+        elif isKeyPressed Keys.Left oldKeyboardState state then
+            cursorPosition <- cursorPosition |> moveCursor (-1,0)
+        elif isKeyPressed Keys.Right oldKeyboardState state then
+            cursorPosition <- cursorPosition |> moveCursor (1,0)
+        oldKeyboardState <- state
+
+    override this.Draw delta =
+        Color.BlanchedAlmond
+        |> this.GraphicsDevice.Clear
+        spriteBatch.Begin()
+
+        board
+        |> drawBoard textures spriteBatch
+
+        spriteBatch.Draw(textures.[Cursor],new Rectangle((cursorPosition |> fst)*cellWidth,(cursorPosition |> snd)*cellHeight,cellWidth,cellHeight), Color.White)
+
+        spriteBatch.End()
 
 [<EntryPoint>]
-let main argv =
-    Console.Title <- "Knight's Tour"
-
-    board
-    |> playGame
-
-    Console.ReadLine() 
-    |> ignore
+let main argv = 
+    use game = new Game1()
+    game.Run()
     0
