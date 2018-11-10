@@ -11,6 +11,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Wandermaze", "Wandermaze\Wa
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ZigZag", "ZigZag\ZigZag.fsproj", "{1671BFD3-39B3-4EE0-91A0-0C9747890792}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Reversi", "Reversi\Reversi.fsproj", "{399A2251-714A-4DE3-974C-4D5C2D7EED8D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{1671BFD3-39B3-4EE0-91A0-0C9747890792}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1671BFD3-39B3-4EE0-91A0-0C9747890792}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1671BFD3-39B3-4EE0-91A0-0C9747890792}.Release|Any CPU.Build.0 = Release|Any CPU
+		{399A2251-714A-4DE3-974C-4D5C2D7EED8D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{399A2251-714A-4DE3-974C-4D5C2D7EED8D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{399A2251-714A-4DE3-974C-4D5C2D7EED8D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{399A2251-714A-4DE3-974C-4D5C2D7EED8D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
