@@ -3,7 +3,6 @@ open Microsoft.Xna.Framework
 open Microsoft.Xna.Framework.Graphics
 open Microsoft.Xna.Framework.Input
 open System.IO
-open System.Globalization
 open Utility
 open System.Text
 
@@ -34,16 +33,26 @@ type CellState = | Fire | Water | Earth | Gold | Player
 type Board = Map<Position, CellState>
 type GameState = {board:Board;level:int;score:int;protection:int}
 
+let isLevelComplete (gameState:GameState) : bool =
+    gameState.board
+    |> Map.exists (fun _ v -> v = Gold)
+    |> not
+
 let hasPlayer (gameState:GameState) : bool =
     gameState.board
     |> Map.exists (fun _ v -> v = Player)
 
+let getPlayerPosition  (gameState:GameState) : Position option =
+    gameState.board
+    |> Map.tryFindKey (fun k v -> v = Player)
+
 let getCellState (position:Position) (gameState:GameState) : CellState option =
     gameState.board |> Map.tryFind position
 
-let (|GAMEOVER|INPLAY|) (gameState:GameState) =
-    match gameState with
-    | x when x |> hasPlayer -> INPLAY
+let (|GAMEOVER|INPLAY|LEVELCOMPLETE|) (gameState:GameState) =
+    match gameState |> hasPlayer, gameState |> isLevelComplete with
+    | true, false -> INPLAY
+    | true, true -> LEVELCOMPLETE
     | _ -> GAMEOVER
 
 let isKeyPressed (key:Keys) (oldKeyboardState:KeyboardState) (newKeyboardState:KeyboardState) : bool = 
@@ -61,6 +70,9 @@ type TextureIdentifier =
 let setBoardCell (position:Position) (state:CellState) (gameState:GameState) : GameState =
     {gameState with board = gameState.board |> Map.add position state}
 
+let clearBoard (gameState:GameState) : GameState =
+    {gameState with board = Map.empty}
+
 let addScore (score:int) (gameState:GameState) : GameState =
     {gameState with score = gameState.score + score}
 
@@ -74,38 +86,43 @@ let boardPositions =
         for y=0 to (boardCellRows-1) do 
             yield (x,y)]
 
-//TODO: allow for having the player already be placed
-let populateBoard (random:Random) (gameState:GameState) : GameState =
-    let playerPositions, remaining =
+
+let populateBoard (playerPosition:Position) (random:Random) (gameState:GameState) : GameState =
+    let remaining =
         boardPositions
+        |> List.filter (fun x-> x<>playerPosition)
         |> List.sortBy (fun _ -> random.Next())
-        |> List.splitAt 1
     let goldPositions, remaining =
         remaining
-        |> List.splitAt 64
+        |> List.splitAt (64)
     let firePositions, remaining =
         remaining
-        |> List.splitAt 128
+        |> List.splitAt (128 + gameState.level * 32)
     let earthPositions, remaining =
         remaining
-        |> List.splitAt 16
+        |> List.splitAt (32 + 8 * gameState.level)
     let waterPositions, remaining =
         remaining
-        |> List.splitAt 8
-    (((((gameState,playerPositions)
+        |> List.splitAt (8 - gameState.level/4)
+    (((((gameState,[playerPosition])
     ||> List.fold (fun acc v -> acc |> setBoardCell v Player), goldPositions)
     ||> List.fold (fun acc v -> acc |> setBoardCell v Gold), firePositions)
     ||> List.fold (fun acc v -> acc |> setBoardCell v Fire), earthPositions)
     ||> List.fold (fun acc v -> acc |> setBoardCell v Earth), waterPositions)
     ||> List.fold (fun acc v -> acc |> setBoardCell v Water)
 
+let nextLevel (random:Random) (gameState:GameState) : GameState =
+    let playerPosition = gameState |> getPlayerPosition |> Option.get
+    {gameState with level = gameState.level+1}
+    |> clearBoard
+    |> populateBoard playerPosition random
 
 let makeGameState (random:Random) : GameState =
     {board=Map.empty;
-    level=1;
+    level=0;
     score=0;
     protection=0}
-    |> populateBoard random
+    |> populateBoard (random.Next(boardCellColumns), random.Next(boardCellRows)) random
 
 let cellStateTextures =
     [(None, Empty);
@@ -136,7 +153,7 @@ type Direction =
 let directionMap =
     [(North,(0,-1));(East,(1,0));(South,(0,1));(West,(-1,0))] |> Map.ofList
 
-let makeMove (direction:Direction) (gameState: GameState) : GameState =
+let makeMove (random:Random) (direction:Direction) (gameState: GameState) : GameState =
     match gameState with 
     | INPLAY ->
         let playerPosition = 
@@ -146,15 +163,28 @@ let makeMove (direction:Direction) (gameState: GameState) : GameState =
         if boardPositions |> List.tryFind (fun v -> v = nextPosition) |> Option.isSome then
             match gameState |> getCellState nextPosition with
             | Some Fire ->
-                gameState
-                |> setBoardCell playerPosition Fire
+                if gameState.protection>0 then
+                    gameState
+                    |> setBoardCell playerPosition Fire
+                    |> setBoardCell nextPosition Player
+                    |> removeProtection 1
+                else
+                    gameState
+                    |> setBoardCell playerPosition Fire
             | Some Earth ->
                 gameState
             | Some Gold ->
-                gameState
-                |> setBoardCell playerPosition Fire
-                |> setBoardCell nextPosition Player
-                |> addScore 1
+                let newState = 
+                    gameState
+                    |> setBoardCell playerPosition Fire
+                    |> setBoardCell nextPosition Player
+                    |> addScore 1
+                match newState with
+                | LEVELCOMPLETE -> 
+                    newState
+                    |> nextLevel random
+                | _ -> 
+                    newState
             | Some Water ->
                 gameState
                 |> setBoardCell playerPosition Fire
@@ -211,13 +241,15 @@ type Wandermaze() as this=
         if(state.IsKeyDown(Keys.Escape)) then
             this.Exit()
         if isKeyPressed Keys.Up oldKeyboardState state then
-            gameState <- gameState |> makeMove North
+            gameState <- gameState |> makeMove random North
         elif isKeyPressed Keys.Down oldKeyboardState state then
-            gameState <- gameState |> makeMove South
+            gameState <- gameState |> makeMove random South
         elif isKeyPressed Keys.Left oldKeyboardState state then
-            gameState <- gameState |> makeMove West
+            gameState <- gameState |> makeMove random West
         elif isKeyPressed Keys.Right oldKeyboardState state then
-            gameState <- gameState |> makeMove East
+            gameState <- gameState |> makeMove random East
+        elif isKeyPressed Keys.F2 oldKeyboardState state then
+            gameState <- makeGameState(random)
         oldKeyboardState <- state
 
     member this.WriteText (position:Position,outputSize:Position,text:string,color:Color) :unit =
@@ -240,6 +272,8 @@ type Wandermaze() as this=
         |> drawBoard textures spriteBatch
 
         this.WriteText((panelOffsetX,panelOffsetY),(panelCellWidth,panelCellHeight),gameState.score |> sprintf "Score: %d",Color.Yellow)
+        this.WriteText((panelOffsetX,panelOffsetY+panelCellHeight),(panelCellWidth,panelCellHeight),gameState.protection |> sprintf "Protection: %d",Color.Blue)
+        this.WriteText((panelOffsetX,panelOffsetY+panelCellHeight*2),(panelCellWidth,panelCellHeight),(gameState.level+1) |> sprintf "Level: %d",Color.Gray)
 
         spriteBatch.End()
 
