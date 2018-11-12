@@ -13,6 +13,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ZigZag", "ZigZag\ZigZag.fsp
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Reversi", "Reversi\Reversi.fsproj", "{399A2251-714A-4DE3-974C-4D5C2D7EED8D}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "DiamondMaze", "DiamondMaze\DiamondMaze.fsproj", "{BE62CF0D-0BC4-418B-8A0D-DAF12DAB595E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{399A2251-714A-4DE3-974C-4D5C2D7EED8D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{399A2251-714A-4DE3-974C-4D5C2D7EED8D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{399A2251-714A-4DE3-974C-4D5C2D7EED8D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BE62CF0D-0BC4-418B-8A0D-DAF12DAB595E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BE62CF0D-0BC4-418B-8A0D-DAF12DAB595E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BE62CF0D-0BC4-418B-8A0D-DAF12DAB595E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BE62CF0D-0BC4-418B-8A0D-DAF12DAB595E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
