@@ -18,8 +18,7 @@ let getOpposing (cellState:CellState option) : CellState option=
     | None       -> None
 
 type GameState =
-    {random:Random;
-    board:Map<Position,CellState>;
+    {board:Map<Position,CellState>;
     currentPlayer:CellState option;
     cursorPosition:Position}
 
@@ -94,8 +93,7 @@ let initialBoard =
     |> Map.add (4,3) Light
 
 let createGameState () =
-    {random = new Random();
-    board = initialBoard;
+    {board = initialBoard;
     currentPlayer = Some Dark;
     cursorPosition = (0,0)}
 
@@ -261,14 +259,17 @@ let makeMove (gameState:GameState) : GameState =
         |> setCellState gameState.currentPlayer.Value gameState.cursorPosition
     else
         gameState
-    //TODO: move to next player!
+
+let restartGame (_) : GameState =
+    createGameState()
 
 let inputHandlers: Map<Keys,GameState->GameState> =
     [(Keys.Up, moveCursor North);
     (Keys.Down, moveCursor South);
     (Keys.Right, moveCursor East);
     (Keys.Left, moveCursor West);
-    (Keys.Space, makeMove)]
+    (Keys.Space, makeMove >> nextPlayer);
+    (Keys.F2, restartGame)]
     |> Map.ofList
 
 
