@@ -48,6 +48,12 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="RenderCell.fs" />
+    <Compile Include="Layout.fs" />
+    <Compile Include="Direction.fs" />
+    <Compile Include="GameState.fs" />
+    <Compile Include="Render.fs" />
+    <Compile Include="Input.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />

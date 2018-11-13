@@ -5,6 +5,7 @@ module Utility =
     open System.Text
     open Microsoft.Xna.Framework
     open Microsoft.Xna.Framework.Input
+    open System
 
     let private splitArray<'T> (input:'T array) : 'T array =
         ((true, Array.empty), input)
@@ -22,3 +23,22 @@ module Utility =
 
     let wasKeyPressed (key:Keys) (oldState:KeyboardState,newState:KeyboardState) : bool =
         (key |> oldState.IsKeyDown |> not) && (key |> newState.IsKeyDown)
+
+    let generate(random:Random) (table:Map<'T,int>) : 'T =
+        let total = 
+            table
+            |> Map.fold (fun acc _ v -> acc + v) 0
+        let generated = 
+            random.Next(total)
+        table
+        |> Map.fold
+            (fun (result:'T option, n:int) k v -> 
+                if result.IsSome then
+                    (result, n)
+                elif n < v then
+                    (Some k, 0)
+                else
+                    (result, n-v)
+                ) (None, generated)
+        |> fst
+        |> Option.get
