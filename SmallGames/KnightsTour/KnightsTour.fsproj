@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>b9bcb9a5-b0b9-4004-ba9e-4c36f972509b</ProjectGuid>
+    <ProjectGuid>fc081eb9-03d6-4e36-aa39-4a33e5ca300b</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <RootNamespace>KnightsTour</RootNamespace>
     <AssemblyName>KnightsTour</AssemblyName>
@@ -93,6 +93,13 @@
     <Reference Include="System.ValueTuple">
       <Private>True</Private>
     </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Grumpy.Common\Grumpy.Common.fsproj">
+      <Name>Grumpy.Common</Name>
+      <Project>{af88432e-aab6-4084-a8f5-cf68e650ec2d}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="..\packages\MonoGame.Framework.DesktopGL.3.7.0.1708\build\MonoGame.Framework.DesktopGL.targets" Condition="Exists('..\packages\MonoGame.Framework.DesktopGL.3.7.0.1708\build\MonoGame.Framework.DesktopGL.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

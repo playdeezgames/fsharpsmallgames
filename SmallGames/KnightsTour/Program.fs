@@ -3,6 +3,7 @@ open Microsoft.Xna.Framework
 open Microsoft.Xna.Framework.Graphics
 open Microsoft.Xna.Framework.Input
 open System.IO
+open Grumpy.Common
 
 let cellWidth = 96
 let cellHeight = 96
@@ -11,15 +12,18 @@ let cellRows = 8
 
 let backBufferWidth = cellWidth * cellColumns
 let backBufferHeight = cellRows * cellHeight
+let backBufferSize = (backBufferWidth, backBufferHeight)
 
 type SquareState = 
     | UNVISITED
     | OCCUPIED
     | VISITED
 
-type Position = int * int
-
 type Board = Map<Position, SquareState>
+
+type GameState =
+    {board:Board;
+    cursorPosition:Position}
 
 let legalMoves = 
     [(-2, 1);
@@ -34,15 +38,16 @@ let legalMoves =
 let addPosition (first:Position) (second:Position) : Position =
     ((first |> fst) + (second |> fst), (first |> snd) + (second |> snd))
 
-let makeBoard () : Board =
+let makeBoard () : GameState =
     let columnFold (board:Board) (column:int) : Board =
         (board, [0..(cellRows-1)])
         ||> List.fold 
             (fun board row -> 
                 board |> Map.add (column,row) UNVISITED)
-
-    (Map.empty, [0..(cellColumns-1)])
-    ||> List.fold columnFold
+    let board = 
+        (Map.empty, [0..(cellColumns-1)])
+        ||> List.fold columnFold
+    {board = board; cursorPosition=(0,0)}
 
 let board = makeBoard()
 
@@ -71,28 +76,30 @@ let isLegalMove (position: Position) (board:Board) : bool =
                 board |> Map.exists (fun k v -> k = destination && v = OCCUPIED))
     | _ -> false
 
-let makeMove (move:Position) (board:Board) : Board =
-    match board with
-    | STARTING ->
-        board
-        |> Map.add move OCCUPIED
-    | INPLAY when board |> Map.exists (fun k v -> k=move && v = UNVISITED)->
-        let origin = 
-            legalMoves
-            |> List.map (addPosition move)
-            |> List.tryPick
-                (fun p -> 
-                    board
-                    |> Map.tryPick(fun k v -> if k = p && v = OCCUPIED then Some k else None))
-        match origin with
-        | Some p ->
-            board
-            |> Map.add p VISITED
-            |> Map.add move OCCUPIED
-        | None -> 
-            board
-    | _ -> 
-        board
+let makeMove (gameState:GameState) : GameState =
+    let board = 
+        match gameState.board with
+        | STARTING ->
+            gameState.board
+            |> Map.add gameState.cursorPosition OCCUPIED
+        | INPLAY when gameState.board |> Map.exists (fun k v -> k=gameState.cursorPosition && v = UNVISITED)->
+            let origin = 
+                legalMoves
+                |> List.map (addPosition gameState.cursorPosition)
+                |> List.tryPick
+                    (fun p -> 
+                        gameState.board
+                        |> Map.tryPick(fun k v -> if k = p && v = OCCUPIED then Some k else None))
+            match origin with
+            | Some p ->
+                gameState.board
+                |> Map.add p VISITED
+                |> Map.add (gameState.cursorPosition) OCCUPIED
+            | None -> 
+                gameState.board
+        | _ -> 
+            gameState.board
+    {gameState with board = board}
 
 type TextureIdentifier = 
     | DarkAllowed
@@ -138,80 +145,49 @@ let drawBoard (textures:Map<TextureIdentifier,Texture2D>) (spriteBatch:SpriteBat
 let isKeyPressed (key:Keys) (oldKeyboardState:KeyboardState) (newKeyboardState:KeyboardState) : bool = 
     oldKeyboardState.IsKeyUp(key) && newKeyboardState.IsKeyDown(key)
 
-let moveCursor (delta:Position) (cursor:Position) : Position =
-    match addPosition delta cursor with
-    | (x,y) when x<0 || y<0 || x>=cellColumns || y>=cellRows -> cursor
-    | x -> x
+let moveCursor (delta:Position) (gameState:GameState) : GameState =
+    let cursor = 
+        match addPosition delta gameState.cursorPosition with
+        | (x,y) when x<0 || y<0 || x>=cellColumns || y>=cellRows -> gameState.cursorPosition
+        | x -> x
+    {gameState with cursorPosition=cursor}
 
-type Game1() as this=
-    inherit Game()
+let inputHandlers: Map<Keys,GameState->GameState> =
+    [(Keys.F2, makeBoard |> Utility.parameterShim);
+    (Keys.Space, makeMove);
+    (Keys.Up, moveCursor (0,-1));
+    (Keys.Down, moveCursor (0,1));
+    (Keys.Left, moveCursor (-1,0));
+    (Keys.Right, moveCursor (1,0))]
+    |> Map.ofList
 
-    do
-        this.Content.RootDirectory <- "Content"
+let handleInput (keyboardStates:KeyboardState*KeyboardState) (gameState:GameState) : GameState =
+    inputHandlers
+    |> Map.filter (fun k _ -> keyboardStates |> Utility.wasKeyPressed k)
+    |> Map.fold (fun acc _ v -> acc |> v) gameState
 
-    let graphics = new GraphicsDeviceManager(this)
+let handleTime (delta:GameTime) (gameState:GameState) : GameState =
+    gameState
 
-    let mutable spriteBatch: SpriteBatch = null
-    let mutable textures: Map<TextureIdentifier,Texture2D> = Map.empty
-    let mutable oldKeyboardState: KeyboardState = Keyboard.GetState()
-    let mutable board: Board = makeBoard()
-    let mutable cursorPosition: Position = (0,0)
+let textureFileNames = 
+    [(DarkAllowed,"Content/dark-allowed.png");
+    ( DarkEmpty,"Content/dark-empty.png");
+    ( DarkOccupied,"Content/dark-occupied.png");
+    ( DarkVisited,"Content/dark-visited.png");
+    ( LightAllowed,"Content/light-allowed.png");
+    ( LightEmpty,"Content/light-empty.png");
+    ( LightOccupied,"Content/light-occupied.png");
+    ( LightVisited,"Content/light-visited.png");
+    ( Cursor,"Content/cursor.png")]
 
-    override this.Initialize() =
-        graphics.PreferredBackBufferWidth <- backBufferWidth
-        graphics.PreferredBackBufferHeight <- backBufferHeight
-        graphics.ApplyChanges()
-        spriteBatch <- new SpriteBatch(this.GraphicsDevice)
-        textures <-
-            [(DarkAllowed,"Content/dark-allowed.png");
-            ( DarkEmpty,"Content/dark-empty.png");
-            ( DarkOccupied,"Content/dark-occupied.png");
-            ( DarkVisited,"Content/dark-visited.png");
-            ( LightAllowed,"Content/light-allowed.png");
-            ( LightEmpty,"Content/light-empty.png");
-            ( LightOccupied,"Content/light-occupied.png");
-            ( LightVisited,"Content/light-visited.png");
-            ( Cursor,"Content/cursor.png")]
-            |> List.fold 
-                (fun acc (index,fileName) -> 
-                    acc
-                    |> Map.add index (Texture2D.FromStream(this.GraphicsDevice, new FileStream(fileName, FileMode.Open)))) textures
+let drawGameState (textures:Map<TextureIdentifier,Texture2D>) (spriteBatch:SpriteBatch) (gameState:GameState) : unit =
+    gameState.board
+    |> drawBoard textures spriteBatch
 
-        base.Initialize()
-
-    override this.LoadContent() =
-        ()
-
-    override this.Update delta =
-        let state = Keyboard.GetState()
-        if(state.IsKeyDown(Keys.Escape)) then
-            this.Exit()
-        if isKeyPressed Keys.Space oldKeyboardState state then
-            board <- board |> makeMove cursorPosition
-        elif isKeyPressed Keys.Up oldKeyboardState state then
-            cursorPosition <- cursorPosition |> moveCursor (0,-1)
-        elif isKeyPressed Keys.Down oldKeyboardState state then
-            cursorPosition <- cursorPosition |> moveCursor (0,1)
-        elif isKeyPressed Keys.Left oldKeyboardState state then
-            cursorPosition <- cursorPosition |> moveCursor (-1,0)
-        elif isKeyPressed Keys.Right oldKeyboardState state then
-            cursorPosition <- cursorPosition |> moveCursor (1,0)
-        oldKeyboardState <- state
-
-    override this.Draw delta =
-        Color.BlanchedAlmond
-        |> this.GraphicsDevice.Clear
-        spriteBatch.Begin()
-
-        board
-        |> drawBoard textures spriteBatch
-
-        spriteBatch.Draw(textures.[Cursor],new Rectangle((cursorPosition |> fst)*cellWidth,(cursorPosition |> snd)*cellHeight,cellWidth,cellHeight), Color.White)
-
-        spriteBatch.End()
+    spriteBatch.Draw(textures.[Cursor],new Rectangle((gameState.cursorPosition |> fst)*cellWidth,(gameState.cursorPosition |> snd)*cellHeight,cellWidth,cellHeight), Color.White)
 
 [<EntryPoint>]
 let main argv = 
-    use game = new Game1()
+    use game = new CommonGame<TextureIdentifier,GameState>(backBufferSize,textureFileNames,makeBoard,drawGameState,handleInput,handleTime)
     game.Run()
     0

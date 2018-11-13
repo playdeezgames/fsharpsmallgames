@@ -42,3 +42,6 @@ module Utility =
                 ) (None, generated)
         |> fst
         |> Option.get
+    
+    let parameterShim (f:unit->'T) (_:'T) : 'T =
+        f()

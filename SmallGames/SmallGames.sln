@@ -5,8 +5,6 @@ VisualStudioVersion = 15.0.28010.2050
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FifteenPuzzle", "FifteenPuzzle\FifteenPuzzle.fsproj", "{AFEB8B45-AF00-4DEA-A5A9-21F9C20F59A3}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "KnightsTour", "KnightsTour\KnightsTour.fsproj", "{B9BCB9A5-B0B9-4004-BA9E-4C36F972509B}"
-EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Wandermaze", "Wandermaze\Wandermaze.fsproj", "{8ADCD039-E637-492B-A115-DCA99BB19925}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ZigZag", "ZigZag\ZigZag.fsproj", "{1671BFD3-39B3-4EE0-91A0-0C9747890792}"
@@ -19,6 +17,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Grumpy.Common", "Grumpy.Com
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Sokoban", "Sokoban\Sokoban.fsproj", "{62E90539-FE3D-4177-B9E1-2DF748DF1097}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "KnightsTour", "KnightsTour\KnightsTour.fsproj", "{FC081EB9-03D6-4E36-AA39-4A33E5CA300B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,10 +29,6 @@ Global
 		{AFEB8B45-AF00-4DEA-A5A9-21F9C20F59A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AFEB8B45-AF00-4DEA-A5A9-21F9C20F59A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AFEB8B45-AF00-4DEA-A5A9-21F9C20F59A3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B9BCB9A5-B0B9-4004-BA9E-4C36F972509B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B9BCB9A5-B0B9-4004-BA9E-4C36F972509B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B9BCB9A5-B0B9-4004-BA9E-4C36F972509B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B9BCB9A5-B0B9-4004-BA9E-4C36F972509B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8ADCD039-E637-492B-A115-DCA99BB19925}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8ADCD039-E637-492B-A115-DCA99BB19925}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8ADCD039-E637-492B-A115-DCA99BB19925}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -57,6 +53,10 @@ Global
 		{62E90539-FE3D-4177-B9E1-2DF748DF1097}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{62E90539-FE3D-4177-B9E1-2DF748DF1097}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{62E90539-FE3D-4177-B9E1-2DF748DF1097}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FC081EB9-03D6-4E36-AA39-4A33E5CA300B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC081EB9-03D6-4E36-AA39-4A33E5CA300B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC081EB9-03D6-4E36-AA39-4A33E5CA300B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC081EB9-03D6-4E36-AA39-4A33E5CA300B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
