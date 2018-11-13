@@ -5,16 +5,14 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>be62cf0d-0bc4-418b-8a0d-daf12dab595e</ProjectGuid>
-    <OutputType>WinExe</OutputType>
-    <RootNamespace>DiamondMaze</RootNamespace>
-    <AssemblyName>DiamondMaze</AssemblyName>
+    <ProjectGuid>62e90539-fe3d-4177-b9e1-2df748df1097</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Sokoban</RootNamespace>
+    <AssemblyName>Sokoban</AssemblyName>
     <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <UseStandardResourceNames>true</UseStandardResourceNames>
-    <Name>DiamondMaze</Name>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
+    <Name>Sokoban</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -51,16 +49,10 @@
     <Compile Include="Program.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
-    <Content Include="Content\romfont8x8.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Core">
       <HintPath>..\packages\FSharp.Core.4.5.2\lib\net45\FSharp.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="MonoGame.Framework">
-      <HintPath>..\packages\MonoGame.Framework.DesktopGL.3.7.0.1708\lib\net45\MonoGame.Framework.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />
@@ -70,20 +62,6 @@
       <Private>True</Private>
     </Reference>
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Grumpy.Common\Grumpy.Common.fsproj">
-      <Name>Grumpy.Common</Name>
-      <Project>{af88432e-aab6-4084-a8f5-cf68e650ec2d}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-  </ItemGroup>
-  <Import Project="..\packages\MonoGame.Framework.DesktopGL.3.7.0.1708\build\MonoGame.Framework.DesktopGL.targets" Condition="Exists('..\packages\MonoGame.Framework.DesktopGL.3.7.0.1708\build\MonoGame.Framework.DesktopGL.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\MonoGame.Framework.DesktopGL.3.7.0.1708\build\MonoGame.Framework.DesktopGL.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MonoGame.Framework.DesktopGL.3.7.0.1708\build\MonoGame.Framework.DesktopGL.targets'))" />
-  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

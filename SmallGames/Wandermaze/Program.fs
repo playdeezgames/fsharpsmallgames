@@ -3,8 +3,8 @@ open Microsoft.Xna.Framework
 open Microsoft.Xna.Framework.Graphics
 open Microsoft.Xna.Framework.Input
 open System.IO
-open Utility
 open System.Text
+open Grumpy.Common
 
 let boardCellWidth = 16
 let boardCellHeight = 16
@@ -28,10 +28,11 @@ let panelHeight = panelCellRows * panelCellHeight
 
 let backBufferWidth = boardWidth + panelWidth
 let backBufferHeight = boardHeight
+let backBufferSize = (backBufferWidth, backBufferHeight)
 
 type CellState = | Fire | Water | Earth | Gold | Player
 type Board = Map<Position, CellState>
-type GameState = {board:Board;level:int;score:int;protection:int}
+type GameState = {random: Random;board:Board;level:int;score:int;protection:int}
 
 let isLevelComplete (gameState:GameState) : bool =
     gameState.board
@@ -87,11 +88,11 @@ let boardPositions =
             yield (x,y)]
 
 
-let populateBoard (playerPosition:Position) (random:Random) (gameState:GameState) : GameState =
+let populateBoard (playerPosition:Position) (gameState:GameState) : GameState =
     let remaining =
         boardPositions
         |> List.filter (fun x-> x<>playerPosition)
-        |> List.sortBy (fun _ -> random.Next())
+        |> List.sortBy (fun _ -> gameState.random.Next())
     let goldPositions, remaining =
         remaining
         |> List.splitAt (64)
@@ -111,18 +112,20 @@ let populateBoard (playerPosition:Position) (random:Random) (gameState:GameState
     ||> List.fold (fun acc v -> acc |> setBoardCell v Earth), waterPositions)
     ||> List.fold (fun acc v -> acc |> setBoardCell v Water)
 
-let nextLevel (random:Random) (gameState:GameState) : GameState =
+let nextLevel (gameState:GameState) : GameState =
     let playerPosition = gameState |> getPlayerPosition |> Option.get
     {gameState with level = gameState.level+1}
     |> clearBoard
-    |> populateBoard playerPosition random
+    |> populateBoard playerPosition
 
-let makeGameState (random:Random) : GameState =
-    {board=Map.empty;
+let createGameState () : GameState =
+    let random = new Random()
+    {random = random;
+    board=Map.empty;
     level=0;
     score=0;
     protection=0}
-    |> populateBoard (random.Next(boardCellColumns), random.Next(boardCellRows)) random
+    |> populateBoard (random.Next(boardCellColumns), random.Next(boardCellRows))
 
 let cellStateTextures =
     [(None, Empty);
@@ -153,7 +156,7 @@ type Direction =
 let directionMap =
     [(North,(0,-1));(East,(1,0));(South,(0,1));(West,(-1,0))] |> Map.ofList
 
-let makeMove (random:Random) (direction:Direction) (gameState: GameState) : GameState =
+let makeMove (direction:Direction) (gameState: GameState) : GameState =
     match gameState with 
     | INPLAY ->
         let playerPosition = 
@@ -182,7 +185,7 @@ let makeMove (random:Random) (direction:Direction) (gameState: GameState) : Game
                 match newState with
                 | LEVELCOMPLETE -> 
                     newState
-                    |> nextLevel random
+                    |> nextLevel
                 | _ -> 
                     newState
             | Some Water ->
@@ -199,86 +202,45 @@ let makeMove (random:Random) (direction:Direction) (gameState: GameState) : Game
     | _ ->
         gameState
 
-type Wandermaze() as this=
-    inherit Game()
+let textureFileNames = 
+    [(CrownCoin,"Content/crown-coin.png");
+    ( Empty,"Content/empty.png");
+    ( Flame,"Content/flame.png");
+    ( Meeple,"Content/meeple.png");
+    ( StoneWall,"Content/stone-wall.png");
+    ( RomFont,"Content/romfont8x8.png");
+    ( WaterDrop,"Content/water-drop.png")]
 
-    do
-        this.Content.RootDirectory <- "Content"
+let drawGameState (textures:Map<TextureIdentifier,Texture2D>) (spriteBatch:SpriteBatch) (gameState:GameState) : unit =
+    gameState.board
+    |> drawBoard textures spriteBatch
 
-    let graphics = new GraphicsDeviceManager(this)
+    Utility.writeText textures.[RomFont] spriteBatch (panelCellWidth,panelCellHeight) (panelOffsetX,panelOffsetY)                   (gameState.score      |> sprintf "Score: %d")      Color.Yellow
+    Utility.writeText textures.[RomFont] spriteBatch (panelCellWidth,panelCellHeight) (panelOffsetX,panelOffsetY+panelCellHeight)   (gameState.protection |> sprintf "Protection: %d") Color.Blue
+    Utility.writeText textures.[RomFont] spriteBatch  (panelCellWidth,panelCellHeight)(panelOffsetX,panelOffsetY+panelCellHeight*2) ((gameState.level+1)  |> sprintf "Level: %d")      Color.Gray
 
-    let mutable spriteBatch: SpriteBatch = null
-    let mutable textures: Map<TextureIdentifier,Texture2D> = Map.empty
-    let mutable oldKeyboardState: KeyboardState = Keyboard.GetState()
-    let random:Random = new Random()
-    let mutable gameState: GameState = makeGameState(random)
+let restartGame (_) : GameState =
+    createGameState()
 
-    override this.Initialize() =
-        graphics.PreferredBackBufferWidth <- backBufferWidth
-        graphics.PreferredBackBufferHeight <- backBufferHeight
-        graphics.ApplyChanges()
-        spriteBatch <- new SpriteBatch(this.GraphicsDevice)
-        textures <-
-            [(CrownCoin,"Content/crown-coin.png");
-            ( Empty,"Content/empty.png");
-            ( Flame,"Content/flame.png");
-            ( Meeple,"Content/meeple.png");
-            ( StoneWall,"Content/stone-wall.png");
-            ( RomFont,"Content/romfont8x8.png");
-            ( WaterDrop,"Content/water-drop.png")]
-            |> List.fold 
-                (fun acc (index,fileName) -> 
-                    acc
-                    |> Map.add index (Texture2D.FromStream(this.GraphicsDevice, new FileStream(fileName, FileMode.Open)))) textures
+let inputHandlers: Map<Keys,GameState->GameState> =
+    [(Keys.F2, restartGame);
+    (Keys.Up, makeMove North);
+    (Keys.Down, makeMove South);
+    (Keys.Left, makeMove West);
+    (Keys.Right, makeMove East)]
+    |> Map.ofList
 
-        base.Initialize()
+let handleInput (keyboardStates:KeyboardState*KeyboardState) (gameState:GameState) : GameState =
+    inputHandlers
+    |> Map.filter (fun k _ -> keyboardStates |> Utility.wasKeyPressed k)
+    |> Map.fold (fun acc _ v -> acc |> v) gameState
 
-    override this.LoadContent() =
-        ()
+let handleTime (delta:GameTime) (gameState:GameState) : GameState =
+    gameState
 
-    override this.Update delta =
-        let state = Keyboard.GetState()
-        if(state.IsKeyDown(Keys.Escape)) then
-            this.Exit()
-        if isKeyPressed Keys.Up oldKeyboardState state then
-            gameState <- gameState |> makeMove random North
-        elif isKeyPressed Keys.Down oldKeyboardState state then
-            gameState <- gameState |> makeMove random South
-        elif isKeyPressed Keys.Left oldKeyboardState state then
-            gameState <- gameState |> makeMove random West
-        elif isKeyPressed Keys.Right oldKeyboardState state then
-            gameState <- gameState |> makeMove random East
-        elif isKeyPressed Keys.F2 oldKeyboardState state then
-            gameState <- makeGameState(random)
-        oldKeyboardState <- state
-
-    member this.WriteText (position:Position,outputSize:Position,text:string,color:Color) :unit =
-        let texture = textures.[RomFont]
-        let inputSize = (texture.Width/16, texture.Height/16)
-        (position, text |> Encoding.ASCII.GetBytes)
-        ||> Array.fold 
-            (fun p c -> 
-                spriteBatch.Draw(texture,new Rectangle(p|>fst,p|>snd,outputSize|>fst,outputSize|>snd), new Rectangle((int(c % 16uy)) * (inputSize|>fst),(int(c / 16uy)) * (inputSize|>snd),inputSize|>fst,inputSize|>snd) |> Some |> Option.toNullable, color)
-                ((p |> fst) + (outputSize |> fst), p|>snd)) 
-        |>ignore
-
-
-    override this.Draw delta =
-        Color.Black
-        |> this.GraphicsDevice.Clear
-        spriteBatch.Begin()
-
-        gameState.board
-        |> drawBoard textures spriteBatch
-
-        this.WriteText((panelOffsetX,panelOffsetY),(panelCellWidth,panelCellHeight),gameState.score |> sprintf "Score: %d",Color.Yellow)
-        this.WriteText((panelOffsetX,panelOffsetY+panelCellHeight),(panelCellWidth,panelCellHeight),gameState.protection |> sprintf "Protection: %d",Color.Blue)
-        this.WriteText((panelOffsetX,panelOffsetY+panelCellHeight*2),(panelCellWidth,panelCellHeight),(gameState.level+1) |> sprintf "Level: %d",Color.Gray)
-
-        spriteBatch.End()
 
 [<EntryPoint>]
 let main argv = 
-    use game = new Wandermaze()
+    use game = new CommonGame<TextureIdentifier,GameState>(backBufferSize,textureFileNames,createGameState,drawGameState,handleInput,handleTime)
     game.Run()
     0

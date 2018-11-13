@@ -48,9 +48,6 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="CommonGame.fs" />
-    <Compile Include="Position.fs" />
-    <Compile Include="Utility.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
@@ -72,6 +69,13 @@
     <Reference Include="System.ValueTuple">
       <Private>True</Private>
     </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Grumpy.Common\Grumpy.Common.fsproj">
+      <Name>Grumpy.Common</Name>
+      <Project>{af88432e-aab6-4084-a8f5-cf68e650ec2d}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="..\packages\MonoGame.Framework.DesktopGL.3.7.0.1708\build\MonoGame.Framework.DesktopGL.targets" Condition="Exists('..\packages\MonoGame.Framework.DesktopGL.3.7.0.1708\build\MonoGame.Framework.DesktopGL.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

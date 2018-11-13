@@ -15,6 +15,10 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Reversi", "Reversi\Reversi.
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "DiamondMaze", "DiamondMaze\DiamondMaze.fsproj", "{BE62CF0D-0BC4-418B-8A0D-DAF12DAB595E}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Grumpy.Common", "Grumpy.Common\Grumpy.Common.fsproj", "{AF88432E-AAB6-4084-A8F5-CF68E650EC2D}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Sokoban", "Sokoban\Sokoban.fsproj", "{62E90539-FE3D-4177-B9E1-2DF748DF1097}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +49,14 @@ Global
 		{BE62CF0D-0BC4-418B-8A0D-DAF12DAB595E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BE62CF0D-0BC4-418B-8A0D-DAF12DAB595E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BE62CF0D-0BC4-418B-8A0D-DAF12DAB595E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF88432E-AAB6-4084-A8F5-CF68E650EC2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF88432E-AAB6-4084-A8F5-CF68E650EC2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF88432E-AAB6-4084-A8F5-CF68E650EC2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF88432E-AAB6-4084-A8F5-CF68E650EC2D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{62E90539-FE3D-4177-B9E1-2DF748DF1097}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62E90539-FE3D-4177-B9E1-2DF748DF1097}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62E90539-FE3D-4177-B9E1-2DF748DF1097}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62E90539-FE3D-4177-B9E1-2DF748DF1097}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

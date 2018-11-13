@@ -91,9 +91,6 @@ let startGame (gameState:GameState) : GameState =
     {gameState with
         gameOver=false}
 
-let wasKeyPressed (key:Keys) (oldState:KeyboardState,newState:KeyboardState) : bool =
-    (key |> oldState.IsKeyDown |> not) && (key |> newState.IsKeyDown)
-
 let handleInput (keyboardStates:KeyboardState*KeyboardState) (gameState:GameState) : GameState =
     if gameState.gameOver then
         if keyboardStates |> wasKeyPressed Keys.Space then

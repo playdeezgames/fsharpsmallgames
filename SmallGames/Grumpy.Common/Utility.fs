@@ -4,6 +4,7 @@ module Utility =
     open Microsoft.Xna.Framework.Graphics
     open System.Text
     open Microsoft.Xna.Framework
+    open Microsoft.Xna.Framework.Input
 
     let private splitArray<'T> (input:'T array) : 'T array =
         ((true, Array.empty), input)
@@ -18,3 +19,6 @@ module Utility =
                 spriteBatch.Draw(texture,new Rectangle(p|>fst,p|>snd,outputSize|>fst,outputSize|>snd), new Rectangle((int(c % 16uy)) * (inputSize|>fst),(int(c / 16uy)) * (inputSize|>snd),inputSize|>fst,inputSize|>snd) |> Some |> Option.toNullable, color)
                 ((p |> fst) + (outputSize |> fst), p|>snd)) 
         |>ignore
+
+    let wasKeyPressed (key:Keys) (oldState:KeyboardState,newState:KeyboardState) : bool =
+        (key |> oldState.IsKeyDown |> not) && (key |> newState.IsKeyDown)

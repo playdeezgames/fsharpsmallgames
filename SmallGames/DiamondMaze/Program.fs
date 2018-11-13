@@ -143,9 +143,6 @@ let drawGameState (textures:Map<TextureIdentifier,Texture2D>) (spriteBatch:Sprit
         (fun k v ->
             renderCell textures.[RomFont] k v spriteBatch)
 
-let wasKeyPressed (key:Keys) (oldState:KeyboardState,newState:KeyboardState) : bool =
-    (key |> oldState.IsKeyDown |> not) && (key |> newState.IsKeyDown)
-
 let restartGame (_) : GameState =
     createGameState()
 
@@ -156,7 +153,7 @@ let inputHandlers: Map<Keys,GameState->GameState> =
 
 let handleInput (keyboardStates:KeyboardState*KeyboardState) (gameState:GameState) : GameState =
     inputHandlers
-    |> Map.filter (fun k _ -> keyboardStates |> wasKeyPressed k)
+    |> Map.filter (fun k _ -> keyboardStates |> Utility.wasKeyPressed k)
     |> Map.fold (fun acc _ v -> acc |> v) gameState
 
 let handleTime (delta:GameTime) (gameState:GameState) : GameState =
