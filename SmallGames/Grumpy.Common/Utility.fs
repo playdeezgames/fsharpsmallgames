@@ -7,6 +7,16 @@ module Utility =
     open Microsoft.Xna.Framework.Input
     open System
 
+    let generateFromList (random:Random) (items:'t list) : 't =
+        items
+        |> List.sortBy (fun _ -> random.Next())
+        |> List.head
+
+    let generateFromSet (random:Random) (items:Set<'t>) : 't =
+        items
+        |> Set.toList
+        |> generateFromList random
+
     let private splitArray<'T> (input:'T array) : 'T array =
         ((true, Array.empty), input)
         ||> Array.fold (fun (flip,output) v -> if flip then (not flip, [|v|] |> Array.append output ) else (not flip, output)) 

@@ -15,3 +15,18 @@ module Direction =
         | East  -> ( 1,  0)
         | South -> ( 0,  1)
         | West  -> (-1,  0)
+
+    let set =
+        [North; East; South; West] |> Set.ofList
+
+    let opposite (direction:Direction) : Direction =
+        match direction with
+        | North -> South
+        | South -> North
+        | East  -> West
+        | West  -> East
+
+    let walk (direction:Direction) (position: Position) : Position =
+        direction
+        |> toPosition
+        |> Position.add position

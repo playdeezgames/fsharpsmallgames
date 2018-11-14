@@ -48,6 +48,7 @@
     <Compile Include="Position.fs" />
     <Compile Include="Utility.fs" />
     <Compile Include="CommonGame.fs" />
+    <Compile Include="Maze.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Core">

@@ -22,7 +22,7 @@ open System.Globalization
 
 [<RequireQualifiedAccess>]
 type CellState =
-    | Empty
+    | Empty of bool
     | Diamond
     | Wall
     | Door
@@ -43,7 +43,15 @@ type GameState =
 module GameState =
     let boardColumns = 256
     let boardRows    = 256
-    let boardSize = (boardColumns, boardRows)
+    let boardSize    = (boardColumns, boardRows)
+
+    let mazeColumns  = 16
+    let mazeRows     = 16
+    let mazeSize     = (mazeColumns, mazeRows)
+
+    let mazeCellColumns = boardColumns / mazeColumns
+    let mazeCellRows    = boardRows    / mazeRows
+    let mazeCellSize    = (mazeCellColumns, mazeCellRows)
 
     let boardPositions =
         [for column = 0 to (boardColumns-1) do
@@ -56,7 +64,7 @@ module GameState =
             ||> List.fold 
                 (fun acc p ->
                     acc
-                    |> Map.add p CellState.Empty) 
+                    |> Map.add p (CellState.Empty false)) 
         {gameState with board = board}
 
     let setCellState (cellState:CellState) (position:Position) (gameState:GameState) : GameState =
@@ -71,26 +79,44 @@ module GameState =
         |> gameState.board.TryFind
 
     let populator =
-        [(CellState.Empty, 100);
-        (CellState.Wall,10)]
+        [(CellState.Empty false, 100)]
         |> Map.ofList
 
+    let private placeMazeWalls (maze:Maze<Direction>) (gameState:GameState) : GameState =
+        (gameState, maze)
+        ||> Map.fold 
+            (fun acc position mazeCell -> 
+                let origin = 
+                    position 
+                    |> Position.multiply 
+                
+
+                acc)
+
     let populate (gameState:GameState) : GameState =
-        boardPositions
-        |> List.fold
-            (fun acc p ->
-                acc
-                |> setCellState (populator |> Utility.generate gameState.random) p) (gameState |> clear)
+        let maze =
+            Maze.generate gameState.random Direction.set Direction.opposite Direction.walk mazeSize
+
+        let gameState =
+            boardPositions
+            |> List.fold
+                (fun acc p ->
+                    acc
+                    |> setCellState (populator |> Utility.generate gameState.random) p) (gameState |> clear)
+
+        gameState
+        |> placeMazeWalls maze
 
     let create () : GameState =
-        {random = new Random();
-        board=Map.empty;
-        avatar=(boardColumns/2,boardRows/2)}
+        let random = new Random()
+
+        {random = random;
+        board   = Map.empty;
+        avatar  = (boardColumns/2, boardRows/2)}
         |> clear
         |> populate
 
-    let restart (_) : GameState =
-        create()
+    let restart = Utility.parameterShim create
 
     let moveAvatar (direction:Direction) (gameState:GameState) : GameState =
         let nextPosition = direction |> Direction.toPosition |> Position.add gameState.avatar

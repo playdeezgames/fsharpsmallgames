@@ -26,7 +26,7 @@ module Render =
 
     let renderCells =
         [(CellState.Wall, (Color.White, Color.Black, 0x00uy) |||> RenderCell.makeRenderCell);
-        (CellState.Empty, (Color.Black, Color.Black, 0x00uy) |||> RenderCell.makeRenderCell)]
+        (CellState.Empty false, (Color.Black, Color.Black, 0x00uy) |||> RenderCell.makeRenderCell)]
         |> Map.ofList
 
     let drawGameState (textures:Map<TextureIdentifier,Texture2D>) (spriteBatch:SpriteBatch) (gameState:GameState) : unit =
