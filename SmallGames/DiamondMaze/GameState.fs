@@ -82,13 +82,40 @@ module GameState =
         [(CellState.Empty false, 100)]
         |> Map.ofList
 
+    let private mazeCellCorners = 
+        [(0,0);(0,mazeCellRows-1);(mazeCellColumns-1,0);(mazeCellColumns-1,mazeCellRows-1)]
+
+    let private mazeCellNorthWall =
+        [1..(mazeCellColumns-2)]
+        |> List.map (fun column->(column,0))
+
+    let private mazeCellWestWall =
+        [1..(mazeCellRows-2)]
+        |> List.map (fun row->(0,row))
+
+    let private mazeCellSouthWall =
+        [1..(mazeCellColumns-2)]
+        |> List.map (fun column->(column,mazeCellRows-1))
+
+    let private mazeCellEastWall =
+        [1..(mazeCellRows-2)]
+        |> List.map (fun row->(mazeCellColumns-1,row))
+
+    let private mazeCellWallTable =
+        Map.empty
+        |> Map.add North mazeCellNorthWall
+        |> Map.add South mazeCellSouthWall
+        |> Map.add East mazeCellEastWall
+        |> Map.add West mazeCellWestWall
+
+
     let private placeMazeWalls (maze:Maze<Direction>) (gameState:GameState) : GameState =
         (gameState, maze)
         ||> Map.fold 
             (fun acc position mazeCell -> 
                 let origin = 
                     position 
-                    |> Position.multiply 
+                    |> Position.multiply mazeCellSize
                 
 
                 acc)
