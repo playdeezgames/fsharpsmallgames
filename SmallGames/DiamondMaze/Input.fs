@@ -16,7 +16,7 @@ module Input =
 
     let handleInput (keyboardStates:KeyboardState*KeyboardState) (gameState:GameState) : GameState =
         inputHandlers
-        |> Map.filter (fun k _ -> keyboardStates |> Utility.wasKeyPressed k)
+        |> Map.filter (fun k _ -> (keyboardStates |> snd).IsKeyDown k)
         |> Map.fold (fun acc _ v -> acc |> v) gameState
 
     let handleTime (delta:GameTime) (gameState:GameState) : GameState =

@@ -6,6 +6,14 @@ type MazeCell<'tdirection when 'tdirection: comparison> =
 type Maze<'tdirection when 'tdirection: comparison> =
     Map<Position, MazeCell<'tdirection>>
 
+[<AutoOpen>]
+module MazeActivePatterns =
+    let (|IsDeadEnd|IsHall|) (cell:MazeCell<'tdirection>) =
+        if cell.Count < 2 then
+            IsDeadEnd
+        else
+            IsHall
+
 module MazeCell =
     let create () : MazeCell<'tdirection> =
         Set.empty

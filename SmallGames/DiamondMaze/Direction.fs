@@ -16,8 +16,11 @@ module Direction =
         | South -> ( 0,  1)
         | West  -> (-1,  0)
 
+    let list =
+        [North; East; South; West]
+
     let set =
-        [North; East; South; West] |> Set.ofList
+        list |> Set.ofList
 
     let opposite (direction:Direction) : Direction =
         match direction with

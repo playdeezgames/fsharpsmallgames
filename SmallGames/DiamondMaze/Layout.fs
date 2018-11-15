@@ -34,7 +34,7 @@ module Layout =
                 yield (fieldOffsetColumn + column, fieldOffsetRow + row)]
         |> List.map
             (fun p ->
-                (p, p |> Position.add (-fieldCenterColumn, -fieldOffsetRow)))
+                (p, p |> Position.add ((-fieldCenterColumn), (-fieldCenterRow))))
 
     //status bar (0,29,40,1)
     //minimap (30,1,9,9)
