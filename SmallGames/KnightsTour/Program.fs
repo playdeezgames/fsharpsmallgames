@@ -161,13 +161,13 @@ let inputHandlers: Map<Keys,GameState->GameState> =
     (Keys.Right, moveCursor (1,0))]
     |> Map.ofList
 
-let handleInput (keyboardStates:KeyboardState*KeyboardState) (gameState:GameState) : GameState =
-    inputHandlers
+let handleInput (keyboardStates:KeyboardState*KeyboardState) (gameState:GameState, u:unit) : GameState * unit=
+    (inputHandlers
     |> Map.filter (fun k _ -> keyboardStates |> Utility.wasKeyPressed k)
-    |> Map.fold (fun acc _ v -> acc |> v) gameState
+    |> Map.fold (fun acc _ v -> acc |> v) gameState), u
 
-let handleTime (delta:GameTime) (gameState:GameState) : GameState =
-    gameState
+let handleTime (delta:GameTime) (gameState:GameState, u:unit) : GameState * unit =
+    gameState, u
 
 let textureFileNames = 
     [(DarkAllowed,"Content/dark-allowed.png");
@@ -188,6 +188,6 @@ let drawGameState (textures:Map<TextureIdentifier,Texture2D>) (spriteBatch:Sprit
 
 [<EntryPoint>]
 let main argv = 
-    use game = new CommonGame<TextureIdentifier,GameState>(backBufferSize,textureFileNames,makeBoard,drawGameState,handleInput,handleTime)
+    use game = new CommonGame<TextureIdentifier,GameState,unit>(backBufferSize,textureFileNames,makeBoard, (fun () -> ()),drawGameState,handleInput,handleTime)
     game.Run()
     0

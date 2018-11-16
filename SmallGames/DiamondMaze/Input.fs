@@ -14,11 +14,11 @@ module Input =
         |> Map.ofList
 
 
-    let handleInput (keyboardStates:KeyboardState*KeyboardState) (gameState:GameState) : GameState =
-        inputHandlers
-        |> Map.filter (fun k _ -> (keyboardStates |> snd).IsKeyDown k)
-        |> Map.fold (fun acc _ v -> acc |> v) gameState
+    let handleInput (keyboardStates:KeyboardState*KeyboardState) (gameState:GameState, context:Context) : GameState * Context =
+        (inputHandlers
+        |> Map.filter (fun k _ -> keyboardStates |> Utility.wasKeyPressed k)
+        |> Map.fold (fun acc _ v -> acc |> v) gameState, context)
 
-    let handleTime (delta:GameTime) (gameState:GameState) : GameState =
-        gameState
+    let handleTime (delta:GameTime) (gameState:GameState, context:Context) : GameState * Context =
+        (gameState, context)
 

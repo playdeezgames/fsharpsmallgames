@@ -230,17 +230,17 @@ let inputHandlers: Map<Keys,GameState->GameState> =
     (Keys.Right, makeMove East)]
     |> Map.ofList
 
-let handleInput (keyboardStates:KeyboardState*KeyboardState) (gameState:GameState) : GameState =
-    inputHandlers
+let handleInput (keyboardStates:KeyboardState*KeyboardState) (gameState:GameState, x:unit) : GameState * unit =
+    (inputHandlers
     |> Map.filter (fun k _ -> keyboardStates |> Utility.wasKeyPressed k)
-    |> Map.fold (fun acc _ v -> acc |> v) gameState
+    |> Map.fold (fun acc _ v -> acc |> v) gameState, x)
 
-let handleTime (delta:GameTime) (gameState:GameState) : GameState =
-    gameState
+let handleTime (delta:GameTime) (gameState:GameState, x:unit) : GameState * unit =
+    (gameState, x)
 
 
 [<EntryPoint>]
 let main argv = 
-    use game = new CommonGame<TextureIdentifier,GameState>(backBufferSize,textureFileNames,createGameState,drawGameState,handleInput,handleTime)
+    use game = new CommonGame<TextureIdentifier,GameState,unit>(backBufferSize,textureFileNames,createGameState,(fun () -> ()),drawGameState,handleInput,handleTime)
     game.Run()
     0

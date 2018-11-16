@@ -37,7 +37,12 @@ module Layout =
                 (p, p |> Position.add ((-fieldCenterColumn), (-fieldCenterRow))))
 
     //status bar (0,29,40,1)
-    //minimap (30,1,9,9)
+    //minimap (30,?,9,9)
+    //inventory (30,1,9,4)
+    let inventoryOffsetX = 30
+    let inventoryOffsetY = 1
+    let inventoryColumns = GameState.inventoryColumns
+    let inventoryRows = GameState.inventoryRows
 
     let fieldFrameCells =
         Map.empty

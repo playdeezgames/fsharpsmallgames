@@ -53,7 +53,8 @@ type CellState =
 type GameState =
     {random:Random;
     board:Map<Position, CellState>;
-    avatar:Position}
+    avatar:Position;
+    inventory:CellState list}
 
 module GameState =
     open Grumpy.Common
@@ -158,6 +159,12 @@ module GameState =
         |> Position.multiply mazeCellSize
         |> Position.add
 
+    let private painter (translate:Position->Position) (cs:CellState) (l:Position list) =
+        List.foldBack
+            (fun v acc -> 
+                acc
+                |> setCellState cs v) (l |> List.map translate)
+
     let private mazeCellFold acc position mazeCell =
         let translate = 
             position 
@@ -168,20 +175,31 @@ module GameState =
                 (fun acc direction ->
                     mazeCellWallTable.[direction]
                     |> List.append acc) []
-        let (interior, lockedDoor) =
+        let interior =
             match mazeCell with
-            | IsDeadEnd -> (mazeCellInterior, mazeCellDoorTable.[mazeCell |> Set.toList |> List.head])
-            | _ -> ([],[])
-        let painter (cs:CellState) (l:Position list) =
-            List.foldBack
-                (fun v acc -> 
-                    acc
-                    |> setCellState cs v) (l |> List.map translate)
+            | IsDeadEnd -> mazeCellInterior
+            | _ -> []
         acc
-        |> painter CellState.Wall mazeCellCorners
-        |> painter (CellState.Empty DeadEnd) interior
-        |> painter (CellState.Empty Hall) doors
-        |> painter (CellState.Door RedKey) lockedDoor
+        |> painter translate CellState.Wall mazeCellCorners
+        |> painter translate (CellState.Empty DeadEnd) interior
+        |> painter translate (CellState.Empty Hall) doors
+
+    let keyTypes = [(RedKey,1);(BlueKey,1);(GreenKey,1);(CyanKey,1)] |> Map.ofList
+
+    let private placeKeys (gameState:GameState) (keyList:CellState list): GameState =
+        gameState.board
+        |> Map.filter
+            (fun _ v -> v = (CellState.Empty Hall))
+        |> Map.toList
+        |> List.map fst
+        |> List.sortBy (fun _ -> gameState.random.Next())
+        |> List.splitAt (keyList.Length)
+        |> fst
+        |> List.zip keyList
+        |> List.fold
+            (fun acc (cs,p) -> 
+                acc
+                |> setCellState cs p) gameState
 
     let private placeMazeWalls (maze:Maze<Direction>) (gameState:GameState) : GameState =
         let deadEnds =
@@ -196,26 +214,55 @@ module GameState =
         let gameState =
             (gameState, maze)
             ||> Map.fold mazeCellFold
-        (gameState, deadEnds)
+        ((gameState,[]), deadEnds)
         ||> Map.fold
-            (fun acc position direction -> 
+            (fun (acc:GameState,x) position direction -> 
                 let translate = makeTranslateTransform position
-                //TODO: choose a keytype and place a door in position
-                //TODO: select a "lock" cell for the door
-                //TODO: place the key of the appropriate type in a "hall" cell
-                acc)
+                let keyType = keyTypes |> Utility.generate gameState.random
+                let lock, door = 
+                    mazeCellDoorTable.[direction]
+                    |> List.sortBy (fun _ -> gameState.random.Next())
+                    |> List.splitAt 1
+                (acc
+                |> painter translate (CellState.Lock keyType) lock
+                |> painter translate (CellState.Door keyType) door),
+                x |> List.append [CellState.Key keyType])
+        ||> placeKeys
+
+    let private findCellStates (cellState:CellState) (gameState:GameState) : Position list =
+        gameState.board
+        |> Map.filter 
+            (fun _ v ->
+                v = cellState)
+        |> Map.toList
+        |> List.map fst
+        |> List.sortBy (fun _ -> gameState.random.Next())
 
     let private placeAvatar (gameState:GameState) : GameState =
         let avatarPosition =
-            gameState.board
-            |> Map.filter 
-                (fun _ v ->
-                    v = CellState.Empty Hall)
-            |> Map.toList
-            |> List.map fst
-            |> List.sortBy (fun _ -> gameState.random.Next())
+            gameState
+            |> findCellStates (CellState.Empty Hall)
             |> List.head
         {gameState with avatar = avatarPosition}
+
+    let deadEndDiamondCount = 256
+    let hallDiamondCount = 256
+
+    let placeDiamonds  (gameState:GameState) : GameState =
+        let deadEndPositions =
+            gameState
+            |> findCellStates (CellState.Empty DeadEnd)
+            |> List.splitAt deadEndDiamondCount
+            |> fst
+        gameState
+        |> findCellStates (CellState.Empty Hall)
+        |> List.splitAt hallDiamondCount
+        |> fst
+        |> List.append deadEndPositions
+        |> List.fold
+            (fun acc p -> 
+                acc
+                |> setCellState CellState.Diamond p) gameState
 
     let populate (gameState:GameState) : GameState =
         let maze =
@@ -231,22 +278,48 @@ module GameState =
         gameState
         |> placeMazeWalls maze
         |> placeAvatar
+        |> placeDiamonds
 
     let create () : GameState =
         let random = new Random()
 
         {random = random;
         board   = Map.empty;
-        avatar  = (0, 0)}
+        avatar  = (0, 0);
+        inventory = []}
         |> clear
         |> populate
 
     let restart = Utility.parameterShim create
 
+    let isInventoryItem (cellState: CellState): bool =
+        match cellState with
+        | CellState.Diamond
+        | CellState.Key _ -> true
+        | _ -> false
+
+    let inventoryColumns = 9
+    let inventoryRows = 4
+    let inventoryCapacity = inventoryColumns * inventoryRows
+
+    let canPickupItem (gameState:GameState) : bool =
+        gameState.inventory.Length < inventoryCapacity
+
+    let addInventoryItem (item:CellState) (gameState:GameState) :GameState =
+        {gameState with inventory = gameState.inventory |> List.append [item]}
+
     let moveAvatar (direction:Direction) (gameState:GameState) : GameState =
         let nextPosition = direction |> Direction.toPosition |> Position.add gameState.avatar
         match gameState |> getCellState nextPosition with
-        | Some (CellState.Empty _) -> {gameState with avatar = nextPosition}
+        | Some (CellState.Empty _) -> 
+            {gameState with avatar = nextPosition}
+        | Some x when x |> isInventoryItem -> 
+            if gameState |> canPickupItem then
+                {gameState with avatar = nextPosition}
+                |> setCellState (CellState.Empty Hall) nextPosition
+                |> addInventoryItem x
+            else
+                gameState
         | _ -> gameState
 
 

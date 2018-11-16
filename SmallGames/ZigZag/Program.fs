@@ -91,8 +91,8 @@ let startGame (gameState:GameState) : GameState =
     {gameState with
         gameOver=false}
 
-let handleInput (keyboardStates:KeyboardState*KeyboardState) (gameState:GameState) : GameState =
-    if gameState.gameOver then
+let handleInput (keyboardStates:KeyboardState*KeyboardState) (gameState:GameState, u:unit) : GameState * unit =
+    (if gameState.gameOver then
         if keyboardStates |> wasKeyPressed Keys.Space then
             gameState
             |> resetGame
@@ -111,7 +111,7 @@ let handleInput (keyboardStates:KeyboardState*KeyboardState) (gameState:GameStat
                 score = gameState.score + (gameState.runLength * (gameState.runLength + 1) / 2);
                 runLength=0}
         else
-            gameState
+            gameState), u
 
 let advanceGame (gameState:GameState) : GameState =
     let blocks = 
@@ -137,8 +137,8 @@ let advanceGame (gameState:GameState) : GameState =
         runLength = gameState.runLength+1;
         gameOver = blocks |> List.tryFind (fun x -> x = head.Head) |> Option.isSome || (head.Head |> fst) = 0 || (head.Head |> fst) = (cellColumns-1)}
 
-let handleTime (delta:GameTime) (gameState:GameState) : GameState =
-    if gameState.gameOver then
+let handleTime (delta:GameTime) (gameState:GameState, u:unit) : GameState * unit =
+    (if gameState.gameOver then
         gameState
     else
         match gameState.frameCounter - delta.ElapsedGameTime.TotalMilliseconds with
@@ -146,11 +146,11 @@ let handleTime (delta:GameTime) (gameState:GameState) : GameState =
             {gameState with frameCounter = x+millisecondsPerFrame}
             |> advanceGame 
         | x ->
-            {gameState with frameCounter = x}
+            {gameState with frameCounter = x}),u
     
 
 [<EntryPoint>]
 let main argv = 
-    use game = new CommonGame<TextureIdentifier,GameState>(backBufferSize,textureFileNames,createGameState,drawGameState,handleInput,handleTime)
+    use game = new CommonGame<TextureIdentifier,GameState,unit>(backBufferSize,textureFileNames,createGameState,(fun() -> ()),drawGameState,handleInput,handleTime)
     game.Run()
     0
