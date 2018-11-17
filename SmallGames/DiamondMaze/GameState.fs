@@ -154,6 +154,13 @@ module GameState =
             for row = 1 to mazeCellRows-2 do
                 yield (column,row)]
 
+    let private mazeCellDoors =
+        [mazeCellNorthDoor;
+        mazeCellEastDoor;
+        mazeCellWestDoor;
+        mazeCellSouthDoor]
+        |> List.reduce (@)
+
     let makeTranslateTransform (position:Position) =
         position 
         |> Position.multiply mazeCellSize
@@ -184,7 +191,7 @@ module GameState =
         |> painter translate (CellState.Empty DeadEnd) interior
         |> painter translate (CellState.Empty Hall) doors
 
-    let keyTypes = [(RedKey,1);(BlueKey,1);(GreenKey,1);(CyanKey,1)] |> Map.ofList
+    let keyTypes = [(RedKey,8);(BlueKey,4);(GreenKey,2);(CyanKey,1)] |> Map.ofList
 
     let private placeKeys (gameState:GameState) (keyList:CellState list): GameState =
         gameState.board
@@ -245,8 +252,8 @@ module GameState =
             |> List.head
         {gameState with avatar = avatarPosition}
 
-    let deadEndDiamondCount = 256
-    let hallDiamondCount = 256
+    let deadEndDiamondCount = 1024
+    let hallDiamondCount = 1024
     let baseCount = 16
     let potionCount = 8
     let potions =
@@ -316,8 +323,9 @@ module GameState =
     let isInventoryItem (cellState: CellState): bool =
         match cellState with
         | CellState.Diamond
-        | CellState.Key _ -> true
-        | _ -> false
+        | CellState.Key _    -> true
+        | CellState.Potion _ -> true
+        | _                  -> false
 
     let inventoryColumns = 9
     let inventoryRows = 4
@@ -329,11 +337,57 @@ module GameState =
     let addInventoryItem (item:CellState) (gameState:GameState) :GameState =
         {gameState with inventory = gameState.inventory |> List.append [item]}
 
+    let dropOffDiamonds (gameState:GameState) : GameState =
+        let diamondInventory, otherinventory =
+            gameState.inventory
+            |> List.partition
+                (fun x -> x = CellState.Diamond)
+        //TODO: do something with the diamonds!
+        {gameState with inventory = otherinventory}
+
+    let hasItem (item:CellState) (gameState:GameState) : bool =
+        gameState.inventory
+        |> List.exists 
+            (fun x -> x = item)
+
+    let removeDoor (position:Position) (gameState:GameState) : GameState =
+        let offset = mazeCellSize |> Position.divide position |> Position.multiply mazeCellSize
+        mazeCellDoors
+        |> List.map (Position.add offset)
+        |> List.fold
+            (fun acc v -> 
+                let nextCellState =
+                    match acc |> getCellState v |> Option.get with
+                    | CellState.Door _
+                    | CellState.Lock _ ->
+                        CellState.Empty Hall
+                    | x -> 
+                        x
+                acc
+                |> setCellState nextCellState v) gameState
+
+    let removeInventoryItem (item:CellState) (gameState:GameState) : GameState =
+        let itemInventory, otherInventory =
+            gameState.inventory
+            |> List.partition
+                (fun v -> v = item)
+        {gameState with inventory = otherInventory |> List.append itemInventory.Tail}
+
     let moveAvatar (direction:Direction) (gameState:GameState) : GameState =
         let nextPosition = direction |> Direction.toPosition |> Position.add gameState.avatar
         match gameState |> getCellState nextPosition with
         | Some (CellState.Empty _) -> 
             {gameState with avatar = nextPosition}
+        | Some (CellState.Base) ->
+            gameState
+            |> dropOffDiamonds
+        | Some (CellState.Lock keyType) ->
+            if gameState |> hasItem (CellState.Key keyType) then
+                gameState
+                |> removeInventoryItem (CellState.Key keyType)
+                |> removeDoor nextPosition
+            else
+                gameState
         | Some x when x |> isInventoryItem -> 
             if gameState |> canPickupItem then
                 {gameState with avatar = nextPosition}

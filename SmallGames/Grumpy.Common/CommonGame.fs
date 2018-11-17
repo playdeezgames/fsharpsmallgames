@@ -5,14 +5,17 @@ open Microsoft.Xna.Framework.Graphics
 open Microsoft.Xna.Framework.Input
 open System.IO
 
+// 'TextureIdentifier is a discriminated union or enum that identifies textures
+// 'GameState contains information about the game that would be serializable to a data store
+// 'Context is a display/input context that would not be serializable to a data store
 type CommonGame<'TextureIdentifier, 'GameState, 'Context when 'TextureIdentifier: comparison>
-        (backBufferSize:int*int, 
+        (backBufferSize:      int*int, 
             textureFileNames: ('TextureIdentifier * string) list, 
-            createGameState: unit -> 'GameState, 
-            createContext: unit -> 'Context,
-            drawBoard: Map<'TextureIdentifier,Texture2D>->SpriteBatch->'GameState->unit, 
-            handleInput:(KeyboardState * KeyboardState)->('GameState * 'Context)->('GameState * 'Context), 
-            handleDelta:GameTime->('GameState * 'Context)->('GameState * 'Context)) as this=
+            createGameState:  unit -> 'GameState, 
+            createContext:    unit -> 'Context,
+            drawBoard:        Map<'TextureIdentifier,Texture2D>->SpriteBatch->'GameState->unit, 
+            handleInput:      (KeyboardState * KeyboardState)->('GameState * 'Context)->('GameState * 'Context), 
+            handleDelta:      GameTime->('GameState * 'Context)->('GameState * 'Context)) as this=
     inherit Game()
 
     do
@@ -47,13 +50,14 @@ type CommonGame<'TextureIdentifier, 'GameState, 'Context when 'TextureIdentifier
         ()
 
     override this.Update delta =
-        let state = Keyboard.GetState()
-        if(state.IsKeyDown(Keys.Escape)) then
-            this.Exit()
+        let state = 
+            Keyboard.GetState()
         let nextGameState, nextContext =
-            (gameState,context) |> handleDelta delta |> handleInput (oldKeyboardState, state)
-        gameState <- nextGameState
-        context <- nextContext
+            (gameState,context) 
+            |> handleDelta delta 
+            |> handleInput (oldKeyboardState, state)
+        gameState        <- nextGameState
+        context          <- nextContext
         oldKeyboardState <- state
 
     override this.Draw delta =

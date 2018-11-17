@@ -39,10 +39,10 @@ module Render =
         (CellState.Key BlueKey,            (Color.Black, Color.Blue,      0x07uy) |||> RenderCell.makeRenderCell);
         (CellState.Key GreenKey,           (Color.Black, Color.Green,     0x07uy) |||> RenderCell.makeRenderCell);
         (CellState.Key CyanKey,            (Color.Black, Color.Cyan,      0x07uy) |||> RenderCell.makeRenderCell);
-        (CellState.Potion Health,          (Color.Black, Color.Pink,      0x48uy) |||> RenderCell.makeRenderCell);
-        (CellState.Potion Freeze,          (Color.Black, Color.LightGreen,0x46uy) |||> RenderCell.makeRenderCell);
-        (CellState.Potion Invulnerability, (Color.Black, Color.LightBlue, 0x49uy) |||> RenderCell.makeRenderCell);
-        (CellState.Potion Treasure,        (Color.Black, Color.LightCyan, 0x54uy) |||> RenderCell.makeRenderCell);
+        (CellState.Potion Health,          (Color.Black, Color.Red,       0x48uy) |||> RenderCell.makeRenderCell);
+        (CellState.Potion Freeze,          (Color.Black, Color.Green,     0x46uy) |||> RenderCell.makeRenderCell);
+        (CellState.Potion Invulnerability, (Color.Black, Color.Blue,      0x49uy) |||> RenderCell.makeRenderCell);
+        (CellState.Potion Treasure,        (Color.Black, Color.Cyan,      0x54uy) |||> RenderCell.makeRenderCell);
         (CellState.Avatar,                 (Color.Black, Color.LightPink, 0x02uy) |||> RenderCell.makeRenderCell);
         (CellState.Base,                   (Color.Black, Color.White,     0x7fuy) |||> RenderCell.makeRenderCell);
         (CellState.Diamond,                (Color.Black, Color.Yellow,    0x04uy) |||> RenderCell.makeRenderCell);
