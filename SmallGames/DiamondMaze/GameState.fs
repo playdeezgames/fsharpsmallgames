@@ -229,11 +229,11 @@ module GameState =
                 x |> List.append [CellState.Key keyType])
         ||> placeKeys
 
-    let private findCellStates (cellState:CellState) (gameState:GameState) : Position list =
+    let private findCellStates (filter:CellState->bool) (gameState:GameState) : Position list =
         gameState.board
         |> Map.filter 
             (fun _ v ->
-                v = cellState)
+                v |> filter)
         |> Map.toList
         |> List.map fst
         |> List.sortBy (fun _ -> gameState.random.Next())
@@ -241,28 +241,49 @@ module GameState =
     let private placeAvatar (gameState:GameState) : GameState =
         let avatarPosition =
             gameState
-            |> findCellStates (CellState.Empty Hall)
+            |> findCellStates (fun cs -> cs = CellState.Empty Hall)
             |> List.head
         {gameState with avatar = avatarPosition}
 
     let deadEndDiamondCount = 256
     let hallDiamondCount = 256
+    let baseCount = 16
+    let potionCount = 8
+    let potions =
+        [for index = 1 to potionCount do
+            yield [Health;Freeze;Invulnerability;Treasure]]
+        |> List.reduce (@)
 
-    let placeDiamonds  (gameState:GameState) : GameState =
-        let deadEndPositions =
+    let placeItems  (gameState:GameState) : GameState =
+        let (deadEndDiamondPositions,_) =
             gameState
-            |> findCellStates (CellState.Empty DeadEnd)
+            |> findCellStates (fun cs -> cs = CellState.Empty DeadEnd)
             |> List.splitAt deadEndDiamondCount
+        let (hallDiamondPositions, remainingHallPositions) =
+            gameState
+            |> findCellStates (fun cs -> cs = CellState.Empty Hall)
+            |> List.splitAt hallDiamondCount
+        let (basePositions, remainingHallPositions) =
+            remainingHallPositions
+            |> List.splitAt baseCount
+        let potionPositions =
+            remainingHallPositions
+            |> List.splitAt potions.Length
             |> fst
+            |> List.zip potions
         gameState
-        |> findCellStates (CellState.Empty Hall)
-        |> List.splitAt hallDiamondCount
-        |> fst
-        |> List.append deadEndPositions
-        |> List.fold
-            (fun acc p -> 
+        |> List.foldBack
+            (fun p acc-> 
                 acc
-                |> setCellState CellState.Diamond p) gameState
+                |> setCellState CellState.Diamond p) (hallDiamondPositions |> List.append deadEndDiamondPositions)
+        |> List.foldBack
+            (fun p acc-> 
+                acc
+                |> setCellState CellState.Base p) basePositions
+        |> List.foldBack
+            (fun (pt,p) acc-> 
+                acc
+                |> setCellState (CellState.Potion pt) p) potionPositions
 
     let populate (gameState:GameState) : GameState =
         let maze =
@@ -278,7 +299,7 @@ module GameState =
         gameState
         |> placeMazeWalls maze
         |> placeAvatar
-        |> placeDiamonds
+        |> placeItems
 
     let create () : GameState =
         let random = new Random()

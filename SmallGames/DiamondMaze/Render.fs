@@ -24,24 +24,29 @@ module Render =
         spriteBatch.Draw(texture, position |> outputRect, ((cell.character |> int) % 16,(cell.character |> int) / 16) |> inputRect texture |> Some |> Option.toNullable, cell.foreground)
 
     let renderCells =
-        [(CellState.Wall,         (Color.Black, Color.Gray,      0xb2uy) |||> RenderCell.makeRenderCell);
-        (CellState.Empty Hall,    (Color.Black, Color.Black,     0x00uy) |||> RenderCell.makeRenderCell);
-        (CellState.Empty DeadEnd, (Color.Black, Color.Black,     0x00uy) |||> RenderCell.makeRenderCell);
-        (CellState.Door RedKey,   (Color.Black, Color.Red,       0xdbuy) |||> RenderCell.makeRenderCell);
-        (CellState.Door BlueKey,  (Color.Black, Color.Blue,      0xdbuy) |||> RenderCell.makeRenderCell);
-        (CellState.Door GreenKey, (Color.Black, Color.Green,     0xdbuy) |||> RenderCell.makeRenderCell);
-        (CellState.Door CyanKey,  (Color.Black, Color.Cyan,      0xdbuy) |||> RenderCell.makeRenderCell);
-        (CellState.Lock RedKey,   (Color.Black, Color.Red,       0x08uy) |||> RenderCell.makeRenderCell);
-        (CellState.Lock BlueKey,  (Color.Black, Color.Blue,      0x08uy) |||> RenderCell.makeRenderCell);
-        (CellState.Lock GreenKey, (Color.Black, Color.Green,     0x08uy) |||> RenderCell.makeRenderCell);
-        (CellState.Lock CyanKey,  (Color.Black, Color.Cyan,      0x08uy) |||> RenderCell.makeRenderCell);
-        (CellState.Key RedKey,    (Color.Black, Color.Red,       0x07uy) |||> RenderCell.makeRenderCell);
-        (CellState.Key BlueKey,   (Color.Black, Color.Blue,      0x07uy) |||> RenderCell.makeRenderCell);
-        (CellState.Key GreenKey,  (Color.Black, Color.Green,     0x07uy) |||> RenderCell.makeRenderCell);
-        (CellState.Key CyanKey,   (Color.Black, Color.Cyan,      0x07uy) |||> RenderCell.makeRenderCell);
-        (CellState.Avatar,        (Color.Black, Color.LightPink, 0x02uy) |||> RenderCell.makeRenderCell);
-        (CellState.Diamond,       (Color.Black, Color.Yellow,    0x04uy) |||> RenderCell.makeRenderCell);
-        (CellState.Outside,       (Color.Black, Color.Blue,      0xb0uy) |||> RenderCell.makeRenderCell)]
+        [(CellState.Wall,                  (Color.Black, Color.Gray,      0xb2uy) |||> RenderCell.makeRenderCell);
+        (CellState.Empty Hall,             (Color.Black, Color.Black,     0x00uy) |||> RenderCell.makeRenderCell);
+        (CellState.Empty DeadEnd,          (Color.Black, Color.Black,     0x00uy) |||> RenderCell.makeRenderCell);
+        (CellState.Door RedKey,            (Color.Black, Color.Red,       0xdbuy) |||> RenderCell.makeRenderCell);
+        (CellState.Door BlueKey,           (Color.Black, Color.Blue,      0xdbuy) |||> RenderCell.makeRenderCell);
+        (CellState.Door GreenKey,          (Color.Black, Color.Green,     0xdbuy) |||> RenderCell.makeRenderCell);
+        (CellState.Door CyanKey,           (Color.Black, Color.Cyan,      0xdbuy) |||> RenderCell.makeRenderCell);
+        (CellState.Lock RedKey,            (Color.Black, Color.Red,       0x08uy) |||> RenderCell.makeRenderCell);
+        (CellState.Lock BlueKey,           (Color.Black, Color.Blue,      0x08uy) |||> RenderCell.makeRenderCell);
+        (CellState.Lock GreenKey,          (Color.Black, Color.Green,     0x08uy) |||> RenderCell.makeRenderCell);
+        (CellState.Lock CyanKey,           (Color.Black, Color.Cyan,      0x08uy) |||> RenderCell.makeRenderCell);
+        (CellState.Key RedKey,             (Color.Black, Color.Red,       0x07uy) |||> RenderCell.makeRenderCell);
+        (CellState.Key BlueKey,            (Color.Black, Color.Blue,      0x07uy) |||> RenderCell.makeRenderCell);
+        (CellState.Key GreenKey,           (Color.Black, Color.Green,     0x07uy) |||> RenderCell.makeRenderCell);
+        (CellState.Key CyanKey,            (Color.Black, Color.Cyan,      0x07uy) |||> RenderCell.makeRenderCell);
+        (CellState.Potion Health,          (Color.Black, Color.Pink,      0x48uy) |||> RenderCell.makeRenderCell);
+        (CellState.Potion Freeze,          (Color.Black, Color.LightGreen,0x46uy) |||> RenderCell.makeRenderCell);
+        (CellState.Potion Invulnerability, (Color.Black, Color.LightBlue, 0x49uy) |||> RenderCell.makeRenderCell);
+        (CellState.Potion Treasure,        (Color.Black, Color.LightCyan, 0x54uy) |||> RenderCell.makeRenderCell);
+        (CellState.Avatar,                 (Color.Black, Color.LightPink, 0x02uy) |||> RenderCell.makeRenderCell);
+        (CellState.Base,                   (Color.Black, Color.White,     0x7fuy) |||> RenderCell.makeRenderCell);
+        (CellState.Diamond,                (Color.Black, Color.Yellow,    0x04uy) |||> RenderCell.makeRenderCell);
+        (CellState.Outside,                (Color.Black, Color.Blue,      0xb0uy) |||> RenderCell.makeRenderCell)]
         |> Map.ofList
 
     let inventoryCells =
