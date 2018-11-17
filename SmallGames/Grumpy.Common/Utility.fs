@@ -34,6 +34,9 @@ module Utility =
     let wasKeyPressed (key:Keys) (oldState:KeyboardState,newState:KeyboardState) : bool =
         (key |> oldState.IsKeyDown |> not) && (key |> newState.IsKeyDown)
 
+    let wasKeyChanged (key:Keys) (oldState:KeyboardState,newState:KeyboardState) : bool =
+        (key |> oldState.IsKeyDown) <> (key |> newState.IsKeyDown)
+
     let generate(random:Random) (table:Map<'T,int>) : 'T =
         let total = 
             table
