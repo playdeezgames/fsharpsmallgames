@@ -19,6 +19,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Sokoban", "Sokoban\Sokoban.
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "KnightsTour", "KnightsTour\KnightsTour.fsproj", "{FC081EB9-03D6-4E36-AA39-4A33E5CA300B}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Nacho", "Nacho\Nacho.fsproj", "{3FF17157-6F80-422B-BF63-E41539A2724F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +59,10 @@ Global
 		{FC081EB9-03D6-4E36-AA39-4A33E5CA300B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FC081EB9-03D6-4E36-AA39-4A33E5CA300B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FC081EB9-03D6-4E36-AA39-4A33E5CA300B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3FF17157-6F80-422B-BF63-E41539A2724F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3FF17157-6F80-422B-BF63-E41539A2724F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3FF17157-6F80-422B-BF63-E41539A2724F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3FF17157-6F80-422B-BF63-E41539A2724F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
